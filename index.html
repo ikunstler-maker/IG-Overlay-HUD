@@ -429,7 +429,7 @@ input[type=color] { width: 44px; height: 30px; padding: 2px; border: 1px solid v
         <p class="hint" data-i18n="stories.dummyHint">Extra progress segments that only make the story look longer.</p>
         <label class="toggle"><input type="checkbox" data-bind="stories.reply"><span class="track"></span><span data-i18n="stories.reply">Reply field</span></label>
         <div class="row" data-show-if="stories.reply"><label data-i18n="stories.replyText">Field text</label>
-          <div class="ctl"><input type="text" data-bind="stories.replyText" data-i18n-ph="stories.replyPh"></div>
+          <div class="ctl"><input type="text" dir="auto" data-bind="stories.replyText" data-i18n-ph="stories.replyPh"></div>
         </div>
         <label class="toggle" data-show-if="stories.reply"><input type="checkbox" data-bind="stories.heart"><span class="track"></span><span data-i18n="stories.heart">Heart icon</span></label>
         <label class="toggle" data-show-if="stories.reply"><input type="checkbox" data-bind="stories.share"><span class="track"></span><span data-i18n="stories.share">Share icon</span></label>
@@ -481,13 +481,13 @@ input[type=color] { width: 44px; height: 30px; padding: 2px; border: 1px solid v
       <summary data-i18n="sec.caption">Caption and track</summary>
       <div class="sec-body">
         <div class="row col"><label data-i18n="cap.caption">Caption</label>
-          <textarea data-bind="caption.text" rows="3" data-i18n-ph="cap.captionPh"></textarea>
+          <textarea dir="auto" data-bind="caption.text" rows="3" data-i18n-ph="cap.captionPh"></textarea>
           <p class="hint" data-i18n="cap.hint">The frame shows one line; longer text is cut with « ...». Emoji are supported.</p>
         </div>
-        <div class="row"><label data-i18n="cap.placeholder">Placeholder</label><div class="ctl"><input type="text" data-bind="caption.placeholder" data-i18n-ph="cap.placeholderPh"></div></div>
+        <div class="row"><label data-i18n="cap.placeholder">Placeholder</label><div class="ctl"><input type="text" dir="auto" data-bind="caption.placeholder" data-i18n-ph="cap.placeholderPh"></div></div>
         <label class="toggle"><input type="checkbox" data-bind="track.show"><span class="track"></span><span data-i18n="cap.showTrack">Show track</span></label>
-        <div class="row" data-show-if="track.show"><label data-i18n="cap.artist">Artist</label><div class="ctl"><input type="text" data-bind="track.artist"></div></div>
-        <div class="row" data-show-if="track.show"><label data-i18n="cap.title">Title</label><div class="ctl"><input type="text" data-bind="track.title"></div></div>
+        <div class="row" data-show-if="track.show"><label data-i18n="cap.artist">Artist</label><div class="ctl"><input type="text" dir="auto" data-bind="track.artist"></div></div>
+        <div class="row" data-show-if="track.show"><label data-i18n="cap.title">Title</label><div class="ctl"><input type="text" dir="auto" data-bind="track.title"></div></div>
       </div>
     </details>
 
@@ -1114,7 +1114,7 @@ const LOCALES = {
 };
 
 const LOCALE_ORDER = ['en', 'uk', 'ru', 'es', 'hi', 'ar'];
-function loc(code) { return LOCALES[code] || LOCALES.en; }
+function loc(code) { return Object.hasOwn(LOCALES, code) ? LOCALES[code] : LOCALES.en; }
 const nfCache = new Map();
 function nf(intl, frac, group) {
   const key = intl + '|' + frac + '|' + (group || '');
@@ -1170,8 +1170,9 @@ function randomComment(code = 'en') {
   if (Math.random() < 0.45 && !/\p{Extended_Pictographic}/u.test(text)) text += ' ' + em(1 + Math.floor(Math.random() * 2));
   return text;
 }
+// '' = «Оригінальне аудіо» мовою кадру (рядок береться з LOCALES)
 const RANDOM_TRACKS = [
-  'Original audio', 'Lofi Beats · Chill Study', 'Summer Vibes · Sunset Drive', 'Night Walk · Slowed + Reverb',
+  '', 'Lofi Beats · Chill Study', 'Summer Vibes · Sunset Drive', 'Night Walk · Slowed + Reverb',
   'Acoustic Morning · Coffee Break', 'Synthwave · Neon Drive', 'Piano Rain · Calm Mind', 'Trending Sound · Remix',
 ];
 
@@ -1377,7 +1378,7 @@ function sanitizeState(s) {
   if (nickError(s.author.nickname)) s.author.nickname = DEFAULT_STATE.author.nickname;
   for (const k of ['likes', 'comments', 'reposts', 'saves']) s.stats[k] = Math.max(0, Math.round(s.stats[k]));
   if (!['reels', 'stories'].includes(s.mode)) s.mode = 'reels';
-  if (!LOCALES[s.locale]) s.locale = 'en';
+  if (!Object.hasOwn(LOCALES, s.locale)) s.locale = 'en';
   if (!['compact', 'wide'].includes(s.nav.variant)) s.nav.variant = 'compact';
   if (!['messages', 'create'].includes(s.nav.slot3)) s.nav.slot3 = 'messages';
   if (!['square', 'clapper'].includes(s.nav.reelsIcon)) s.nav.reelsIcon = 'square';
@@ -1390,9 +1391,19 @@ function sanitizeState(s) {
   s.stories.every = clamp(s.stories.every, 0.8, 5);
   if (![30, 60].includes(s.export.fps)) s.export.fps = 30;
   if (!['mp4', 'webm'].includes(s.export.format)) s.export.format = 'mp4';
-  // Стара стандартна заглушка англійською — тепер «порожньо = з мови кадру»
-  if (s.caption.placeholder === 'See more') s.caption.placeholder = '';
-  if (['reels', 'story'].includes(s.export.filename)) s.export.filename = '';
+  s.music.offset = Math.max(0, s.music.offset);
+  s.music.volume = clamp(s.music.volume, 0, 1);
+  // Аватарки зберігаються лише як data:-зображення; зовнішнє посилання «забруднило» б полотно експорту
+  for (const k of AVATAR_SLOTS) {
+    const a = s.avatars[k];
+    if (a && a.data != null && !/^data:image\/(png|jpeg|webp|gif);base64,/i.test(a.data)) a.data = null;
+  }
+  if ((s.version | 0) < 2) {
+    // v1: стара стандартна заглушка англійською (тепер «порожньо = з мови кадру») і стандартна назва файлу
+    if (s.caption.placeholder === 'See more') s.caption.placeholder = '';
+    if (s.export.filename === 'reels') s.export.filename = '';
+  }
+  s.version = DEFAULT_STATE.version;
   return s;
 }
 function loadState() {
@@ -1441,7 +1452,6 @@ const MCTX = makeCanvas(8, 8).getContext('2d');
 const metricCache = new Map();
 const capCache = new Map();
 const segmenter = (typeof Intl !== 'undefined' && Intl.Segmenter) ? new Intl.Segmenter(undefined, { granularity: 'grapheme' }) : null;
-const wordSegmenter = (typeof Intl !== 'undefined' && Intl.Segmenter) ? new Intl.Segmenter(undefined, { granularity: 'word' }) : null;
 
 function fontStr(fam, weight, size) { return `${weight} ${(size * TK).toFixed(2)}px ${FONT_FAMILIES[fam]}`; }
 function measure(font, text) {
@@ -1497,29 +1507,39 @@ function fitText(font, text, maxW, suffix, force = false) {
   return g.slice(0, lo).join('').trimEnd() + suffix;
 }
 /** Перенесення слів у рядки заданої ширини (довгі слова ріжуться по графемах). */
+/**
+ * Переносить текст за шириною. Повертає масив рядків із властивістю dirs — напрям абзацу,
+ * з якого походить кожен рядок (двонапрямний текст має однаковий порядок слів у всіх рядках абзацу).
+ */
 function wrapLines(font, text, maxW, maxLines = 12) {
-  const out = [];
+  const out = [], dirs = [];
   for (const para of String(text).split(/\r?\n/)) {
-    const words = wordSegmenter ? Array.from(wordSegmenter.segment(para), (x) => x.segment) : para.split(/(\s+)/);
+    const pdir = naturalDir(para);
+    const push = (str) => { out.push(str); dirs.push(pdir); };
+    // Переносимо лише на пробілах: розділові знаки (!, ?, …, ؟, ।) лишаються біля свого слова
     let line = '';
-    for (const w of words) {
+    for (const w of para.split(/(\s+)/)) {
+      if (!w) continue;
       const cand = line + w;
-      if (!line || visW(measure(font, cand.trimEnd())) <= maxW) { line = cand; continue; }
-      out.push(line.trimEnd());
-      line = w.trimStart();
-      // слово довше за рядок
-      while (line && visW(measure(font, line)) > maxW) {
+      if (!line.trim() || visW(measure(font, cand.trimEnd())) <= maxW) line = cand;
+      else { push(line.trimEnd()); line = w.trimStart(); }
+      // слово довше за рядок — ріжемо по графемах (завжди хоча б одна графема, інакше цикл не скінчиться)
+      while (line && visW(measure(font, line.trimEnd())) > maxW && out.length <= maxLines) {
         const g = graphemes(line);
+        if (g.length < 2) break;
         let k = g.length - 1;
         while (k > 1 && visW(measure(font, g.slice(0, k).join(''))) > maxW) k--;
-        out.push(g.slice(0, k).join(''));
+        push(g.slice(0, k).join(''));
         line = g.slice(k).join('');
       }
+      if (out.length > maxLines) break;
     }
-    out.push(line.trimEnd());
+    push(line.trimEnd());
     if (out.length >= maxLines) break;
   }
-  return out.slice(0, maxLines);
+  const res = out.slice(0, maxLines);
+  res.dirs = dirs.slice(0, maxLines);
+  return res;
 }
 /**
  * Малює текст. cy — центр великих літер.
@@ -1539,7 +1559,8 @@ function drawText(ctx, text, x, cy, fam, [weight, size], opt = {}) {
     else { canvasAlign = 'right'; ox = x + (m.w - m.r); }
   }
   ctx.save();
-  ctx.translate(ox, cy + (capRatio(fam, weight, scriptOf(text)) * size) / 2);
+  // script — чий еталон висоти брати (для рядків, що стоять на одній базовій лінії з іншим текстом)
+  ctx.translate(ox, cy + (capRatio(fam, weight, opt.script || scriptOf(text)) * size) / 2);
   ctx.scale(1 / TK, 1 / TK);
   ctx.font = font;
   ctx.textAlign = canvasAlign;
@@ -2348,7 +2369,9 @@ function storySegments(R, tl, story) {
   const S = STORY, sb = R.st.stories;
   const nMedia = Math.max(1, tl?.items.length || 0);
   const n = sb.dummyBefore + nMedia + sb.dummyAfter;
-  const w = (S.barX1 - S.barX0 - S.barGap * (n - 1)) / n;
+  // Проміжки займають не більше 30 % ширини — навіть із багатьма сегментами ширина лишається додатною
+  const gap = n > 1 ? Math.min(S.barGap, (S.barX1 - S.barX0) * 0.3 / (n - 1)) : 0;
+  const w = (S.barX1 - S.barX0 - gap * (n - 1)) / n;
   const cur = story ? story.index : -1;
   const frac = story ? clamp(story.local / story.len, 0, 1) : 0;
   const segs = [];
@@ -2357,7 +2380,7 @@ function storySegments(R, tl, story) {
     let fill = 0, media = -1;
     if (i < sb.dummyBefore) fill = 1;
     else if (j < nMedia) { media = j; fill = j < cur ? 1 : j === cur ? frac : 0; }
-    segs.push({ x: S.barX0 + i * (w + S.barGap), w, fill, media });
+    segs.push({ x: S.barX0 + i * (w + gap), w, fill, media });
   }
   return segs;
 }
@@ -2414,7 +2437,7 @@ function drawStoriesUI(ctx, R, t, media, story, snap) {
   const nm = drawText(ctx, nick, R.X(S.nameX), nameCy, fam, R.ty.sName, { rtl: R.rtl });
   let xx = S.nameX + visW(nm);
   if (st.author.verified) { drawVerified(ctx, R.X(xx + 4 + 5.4), nameCy, 10.85); xx += badge; }
-  drawText(ctx, timeTxt, R.X(xx + S.nameGap), nameCy, fam, R.ty.sTime, { rtl: R.rtl, dir: L.dir, color: 'rgba(255,255,255,0.72)' });
+  drawText(ctx, timeTxt, R.X(xx + S.nameGap), nameCy, fam, R.ty.sTime, { rtl: R.rtl, dir: L.dir, script: scriptOf(nick), color: 'rgba(255,255,255,0.72)' });
   if (audioTxt) {
     ctx.save();
     ctx.translate(R.X(S.noteCx), cy + S.audioDown);
@@ -2457,8 +2480,12 @@ function drawStoriesUI(ctx, R, t, media, story, snap) {
       const path = new Path2D();
       rrect(path, left, top, w, h, Math.min(h / 2, 18));
       glassFill(ctx, R, snap, path, ['rgba(30,30,30,0.7)']);
-      lines.forEach((ln, li) => drawText(ctx, ln, R.rtl ? left + w - S.bubblePadX : left + S.bubblePadX,
-        top + S.bubblePadY + S.bubbleLineH * (li + 0.5), fam, R.ty.sBubble, { rtl: R.rtl }));
+      // Кожен рядок вирівнюється за напрямом свого абзацу (природне вирівнювання iOS)
+      lines.forEach((ln, li) => {
+        const dir = lines.dirs[li], rtlLine = dir === 'rtl';
+        drawText(ctx, ln, rtlLine ? left + w - S.bubblePadX : left + S.bubblePadX,
+          top + S.bubblePadY + S.bubbleLineH * (li + 0.5), fam, R.ty.sBubble, { rtl: rtlLine, dir });
+      });
       ctx.restore();
       cursor -= (h + S.bubbleGap) * enter;
     }
@@ -2573,7 +2600,7 @@ function drawSticker(ctx, R, s) {
     ctx.strokeStyle = s.color || '#0072ff';
     ctx.stroke(SICON.link);
     ctx.restore();
-    drawText(ctx, lay.txt, -w / 2 + K.padX + K.icon + K.gap, 0, fam, K.font, { color: s.color || '#0072ff', dir: 'ltr' });
+    drawText(ctx, lay.txt, -w / 2 + K.padX + K.icon + K.gap, 0, fam, K.font, { color: s.color || '#0072ff' });
   } else if (s.type === 'question') {
     const K = STK.question;
     const p = new Path2D();
@@ -2588,7 +2615,7 @@ function drawSticker(ctx, R, s) {
     ctx.fill();
     drawAvatar(ctx, 'author', 0, top, K.avD, R.st);
     let y = top + K.padTop;
-    lay.lines.forEach((ln) => { drawText(ctx, ln, 0, y + K.lh / 2, fam, K.prompt, { align: 'center', color: '#000' }); y += K.lh; });
+    lay.lines.forEach((ln, i) => { drawText(ctx, ln, 0, y + K.lh / 2, fam, K.prompt, { align: 'center', color: '#000', dir: lay.lines.dirs[i] }); y += K.lh; });
     y += K.gap;
     const ip = new Path2D();
     rrect(ip, -w / 2 + K.padX, y, w - 2 * K.padX, K.inputH, 9);
@@ -2612,9 +2639,9 @@ function drawSticker(ctx, R, s) {
     ctx.fillRect(-w / 2, -h / 2, w, lay.topH);
     ctx.restore();
     let y = -h / 2 + K.padY;
-    lay.pl.forEach((ln) => { drawText(ctx, ln, 0, y + K.plh / 2, fam, K.prompt, { align: 'center' }); y += K.plh; });
+    lay.pl.forEach((ln, i) => { drawText(ctx, ln, 0, y + K.plh / 2, fam, K.prompt, { align: 'center', dir: lay.pl.dirs[i] }); y += K.plh; });
     y = -h / 2 + lay.topH + K.padB;
-    lay.al.forEach((ln) => { drawText(ctx, ln, 0, y + K.alh / 2, fam, K.answer, { align: 'center', color: th[2] }); y += K.alh; });
+    lay.al.forEach((ln, i) => { drawText(ctx, ln, 0, y + K.alh / 2, fam, K.answer, { align: 'center', color: th[2], dir: lay.al.dirs[i] }); y += K.alh; });
   } else {
     const K = STK.text;
     if (lay.bg) {
@@ -2626,7 +2653,7 @@ function drawSticker(ctx, R, s) {
     if (!lay.bg) { ctx.shadowColor = 'rgba(0,0,0,0.25)'; ctx.shadowBlur = 3 * R.s; ctx.shadowOffsetY = 0; }
     else shadowOff(ctx);
     let y = -h / 2 + (lay.bg ? K.padY : 0);
-    lay.lines.forEach((ln) => { drawText(ctx, ln, 0, y + K.lh / 2, fam, K.font, { align: 'center', color: s.color || '#fff' }); y += K.lh; });
+    lay.lines.forEach((ln, i) => { drawText(ctx, ln, 0, y + K.lh / 2, fam, K.font, { align: 'center', color: s.color || '#fff', dir: lay.lines.dirs[i] }); y += K.lh; });
   }
   ctx.restore();
 }
@@ -2912,7 +2939,17 @@ function updateTransport(force = false) {
   if (!seekDragging) seekEl.value = String(pv.t);
   $('#timeLabel').textContent = `${fmtTime(pv.t)} / ${fmtTime(total)}`;
 }
+// Помилка в одному кадрі не повинна зупиняти цикл прев'ю назавжди
+let loopErr = '';
 function loop(now) {
+  try { loopStep(now); } catch (e) {
+    const msg = String(e?.stack || e);
+    if (msg !== loopErr) { loopErr = msg; console.error(e); }
+    if (pv.ctx.reset) pv.ctx.reset(); else pv.ctx.setTransform(1, 0, 0, 1, 0, 0);   // незбалансований save()
+  }
+  requestAnimationFrame(loop);
+}
+function loopStep(now) {
   if (pv.playing) {
     const total = displayTotal();
     let tt = pv.t0 + (now - pv.wall0) / 1000;
@@ -2946,7 +2983,6 @@ function loop(now) {
       buildStickerUI();
     }
   }
-  requestAnimationFrame(loop);
 }
 
 function layoutPreview() {
@@ -3005,7 +3041,7 @@ function segmentUnder(R, p) {
 function setupCanvasInteraction() {
   const cv = pv.canvas;
   cv.addEventListener('pointerdown', (e) => {
-    if (state.mode !== 'stories' || exportJob) return;
+    if (state.mode !== 'stories' || exportJob || e.button !== 0) return;
     const R = previewR();
     const p = canvasPoint(e);
     const sel = selectedSticker();
@@ -3025,13 +3061,21 @@ function setupCanvasInteraction() {
   cv.addEventListener('pointermove', (e) => {
     const p = canvasPoint(e);
     if (edit.drag) {
+      // кнопку відпустили поза полотном (контекстне меню, втрачене захоплення) — завершуємо перетягування
+      if (e.pointerType === 'mouse' && !(e.buttons & 1)) { end(); return; }
       const d = edit.drag, s = d.sticker;
       if (d.kind === 'move') {
         s.x = clamp(d.x0 + (p.x - d.px) / BASE_W, -0.2, 1.2);
         s.y = clamp(d.y0 + (p.y - d.py) / d.Hp, -0.2, 1.2);
       } else {
-        const a0 = Math.atan2(d.py - d.cy, d.px - d.cx), a1 = Math.atan2(p.y - d.cy, p.x - d.cx);
-        s.rotation = Math.round((d.rot0 + (a1 - a0) * 180 / Math.PI) * 10) / 10;
+        // Кут накопичуємо приростами, щоб перехід atan2 через ±180° не давав стрибка на 360°
+        const a1 = Math.atan2(p.y - d.cy, p.x - d.cx);
+        let da = a1 - d.aPrev;
+        if (da > Math.PI) da -= 2 * Math.PI; else if (da < -Math.PI) da += 2 * Math.PI;
+        d.aPrev = a1;
+        d.rot += da * 180 / Math.PI;
+        const r = ((d.rot + 180) % 360 + 360) % 360 - 180;   // −180…180, як у повзунка
+        s.rotation = Math.round(r * 10) / 10;
         const r0 = Math.hypot(d.px - d.cx, d.py - d.cy), r1 = Math.hypot(p.x - d.cx, p.y - d.cy);
         if (r0 > 1) s.scale = clamp(d.sc0 * r1 / r0, 0.3, 4);
       }
@@ -3048,6 +3092,7 @@ function setupCanvasInteraction() {
   const end = () => { if (edit.drag) { edit.drag = null; cv.classList.remove('grabbing'); } };
   cv.addEventListener('pointerup', end);
   cv.addEventListener('pointercancel', end);
+  cv.addEventListener('lostpointercapture', end);
   cv.addEventListener('keydown', (e) => {
     if ((e.key === 'Delete' || e.key === 'Backspace') && edit.selected) { e.preventDefault(); deleteSticker(edit.selected); }
   });
@@ -3055,7 +3100,7 @@ function setupCanvasInteraction() {
 function startDrag(e, R, s, kind, p) {
   pause();  // робота зі стікером ставить відео на паузу
   const c = stickerCenter(R, s);
-  edit.drag = { kind, sticker: s, px: p.x, py: p.y, x0: s.x, y0: s.y, rot0: s.rotation || 0, sc0: s.scale || 1, cx: c.x, cy: c.y, Hp: R.Hp };
+  edit.drag = { kind, sticker: s, px: p.x, py: p.y, x0: s.x, y0: s.y, rot: s.rotation || 0, aPrev: Math.atan2(p.y - c.y, p.x - c.x), sc0: s.scale || 1, cx: c.x, cy: c.y, Hp: R.Hp };
   pv.canvas.setPointerCapture?.(e.pointerId);
   pv.canvas.classList.add('grabbing');
   pv.canvas.focus({ preventScroll: true });
@@ -3066,13 +3111,13 @@ function startDrag(e, R, s, kind, p) {
 // ============================== 14. Медіа: додавання ==============================
 async function addFiles(fileList, mode = state.mode) {
   const files = Array.from(fileList || []);
-  let added = 0;
+  let added = 0, music = 0;
   for (const f of files) {
     const name = f.name || '';
     try {
       if (f.type.startsWith('video/') || /\.(mp4|m4v|mov|webm)$/i.test(name)) { await addVideo(f, mode); added++; }
       else if (f.type.startsWith('image/') || /\.(jpe?g|png|webp)$/i.test(name)) { await addImage(f, mode); added++; }
-      else if (f.type.startsWith('audio/') || /\.(mp3|m4a|aac|wav|ogg|opus|flac)$/i.test(name)) { await setMusic(f); }
+      else if (f.type.startsWith('audio/') || /\.(mp3|m4a|aac|wav|ogg|opus|flac)$/i.test(name)) { await setMusic(f); music++; }
       else toast(t('media.unsupported', { name }), 'warn');
     } catch (e) {
       console.error(e);
@@ -3085,29 +3130,38 @@ async function addFiles(fileList, mode = state.mode) {
     ensureFonts().then(requestRender);
     requestRender();
   }
+  return added + music;
 }
+let urlBusy = false;
 async function addFromUrl(raw) {
+  if (urlBusy) return;
   let u;
   try {
     u = new URL(String(raw).trim());
     if (!/^https?:$/.test(u.protocol)) throw new Error('protocol');
   } catch (_) { toast(t('url.bad'), 'warn'); return; }
   const btn = $('#btnAddUrl');
+  // Список, у який додаємо, — той, з якого натиснули «Додати», навіть якщо за час завантаження перемкнули вкладку
+  const mode = state.mode;
+  urlBusy = true;
   btn.disabled = true;
   try {
     // Завантажуємо файл повністю: так кадр ніколи не стане «tainted», а Mediabunny зможе його декодувати.
     const res = await fetch(u.href, { mode: 'cors', credentials: 'omit' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const blob = await res.blob();
-    let name = decodeURIComponent(u.pathname.split('/').pop() || '') || 'media';
+    const last = u.pathname.split('/').pop() || '';
+    let name;
+    try { name = decodeURIComponent(last); } catch (_) { name = last; }
+    name = name || 'media';
     const type = blob.type && blob.type !== 'application/octet-stream' ? blob.type : '';
     if (!/\.[a-z0-9]{2,4}$/i.test(name) && type) name += '.' + type.split('/')[1].split(';')[0];
-    await addFiles([new File([blob], name, { type })]);
-    $('#mediaUrl').value = '';
+    if (await addFiles([new File([blob], name, { type })], mode)) $('#mediaUrl').value = '';
   } catch (e) {
     console.warn(e);
     toast(t('url.fail'), 'err', 7000);
   } finally {
+    urlBusy = false;
     btn.disabled = false;
   }
 }
@@ -3249,13 +3303,14 @@ const TIME_UNITS = ['s', 'm', 'h', 'd', 'w', 'y'];
 function clipSub(c) {
   return `${t(c.type === 'video' ? 'clip.video' : 'clip.photo')} · ${clipLen(c).toFixed(2)} ${t('unit.s')}${c.type === 'video' && c.muted ? ' · ' + t('clip.muted') : ''}`;
 }
+function unitLabel(value, u) { return `${t('unit.' + u + 'Long')} — ${formatAgo(value, u, state.locale)}`; }
 function storyBodyHtml(c) {
   const ss = c.story;
   const L = loc(state.locale);
-  const units = TIME_UNITS.map((u) => `<option value="${u}" ${ss.timeUnit === u ? 'selected' : ''}>${escapeHtml(t('unit.' + u + 'Long'))} — ${escapeHtml(formatAgo(ss.timeValue, u, state.locale))}</option>`).join('');
+  const units = TIME_UNITS.map((u) => `<option value="${u}" ${ss.timeUnit === u ? 'selected' : ''}>${escapeHtml(unitLabel(ss.timeValue, u))}</option>`).join('');
   const cmts = ss.comments.map((x) => `
     <div class="comment-row" data-cmt="${escapeHtml(x.id)}">
-      <input type="text" value="${escapeHtml(x.text)}" data-cmt-text aria-label="${escapeHtml(t('slide.comment'))}">
+      <input type="text" dir="auto" value="${escapeHtml(x.text)}" data-cmt-text aria-label="${escapeHtml(t('slide.comment'))}">
       <button class="icon-btn" type="button" data-act="cmt-rand" title="${escapeHtml(t('slide.cmtRand'))}" aria-label="${escapeHtml(t('slide.cmtRand'))}">🎲</button>
       <button class="icon-btn" type="button" data-act="cmt-del" title="${escapeHtml(t('slide.cmtDel'))}" aria-label="${escapeHtml(t('slide.cmtDel'))}">✕</button>
     </div>`).join('');
@@ -3268,7 +3323,7 @@ function storyBodyHtml(c) {
     <div class="slide-group">
       <label class="toggle"><input type="checkbox" data-story="showAudio" ${ss.showAudio ? 'checked' : ''}><span class="track"></span><span>${escapeHtml(t('slide.audio'))}</span></label>
       <div class="url-row ${ss.showAudio ? '' : 'is-disabled'}" data-audio-row>
-        <input type="text" value="${escapeHtml(ss.audioText)}" data-story="audioText" placeholder="${escapeHtml(L.s.originalAudio)}">
+        <input type="text" dir="auto" value="${escapeHtml(ss.audioText)}" data-story="audioText" placeholder="${escapeHtml(L.s.originalAudio)}">
         <button class="icon-btn" type="button" data-act="audio-rand" title="${escapeHtml(t('slide.audioRand'))}" aria-label="${escapeHtml(t('slide.audioRand'))}" style="width:32px;height:32px">🎲</button>
       </div>
     </div>
@@ -3367,6 +3422,8 @@ function onClipInput(e) {
     } else if (key === 'timeValue') {
       const v = parseInt(el.value, 10);
       if (Number.isFinite(v)) c.story.timeValue = clamp(v, 0, 999);
+      const sel = $('[data-story="timeUnit"]', li);
+      if (sel) for (const o of sel.options) o.textContent = unitLabel(c.story.timeValue, o.value);
     } else c.story[key] = el.value;
     if (key === 'audioText') ensureFonts().then(requestRender);
     requestRender();
@@ -3424,7 +3481,7 @@ function onClipClick(e) {
     const row = btn.closest('[data-cmt]');
     if (act === 'cmt-rand' && row) { const cm = ss.comments.find((x) => x.id === row.dataset.cmt); if (cm) cm.text = randomComment(state.locale); }
     if (act === 'cmt-del' && row) ss.comments = ss.comments.filter((x) => x.id !== row.dataset.cmt);
-    if (act === 'audio-rand') { ss.audioText = pick(RANDOM_TRACKS.filter((x) => x !== ss.audioText)); ss.showAudio = true; }
+    if (act === 'audio-rand') { ss.audioText = pick(RANDOM_TRACKS.filter((x) => x !== (ss.audioText || '').trim())); ss.showAudio = true; }
     renderClipList();
     ensureFonts().then(requestRender);
     requestRender();
@@ -3567,6 +3624,9 @@ function buildStickerUI() {
   if (!chips) return;
   const slide = currentSlide();
   const st = slide?.story?.stickers || [];
+  // На сенсорних екранах жест над стікером інакше став би прокручуванням сторінки (pointercancel).
+  // Без стікерів прев'ю лишається звичайною областю для прокручування.
+  pv.canvas.style.touchAction = state.mode === 'stories' && st.length ? 'none' : '';
   chips.innerHTML = st.length ? '' : `<span class="hint">${escapeHtml(t(slide ? 'stk.empty' : 'stk.noSlide'))}</span>`;
   for (const s of st) {
     const b = document.createElement('button');
@@ -3585,17 +3645,17 @@ function buildStickerUI() {
   const color = (label, prop) => `<div class="row"><label>${escapeHtml(label)}</label><div class="ctl"><input type="color" value="${escapeHtml(s[prop])}" data-stk="${prop}"></div></div>`;
   let html = '';
   if (s.type === 'link') {
-    html += field(t('stk.f.text'), `<input type="text" value="${escapeHtml(s.text)}" data-stk="text" maxlength="60">`);
+    html += field(t('stk.f.text'), `<input type="text" dir="auto" value="${escapeHtml(s.text)}" data-stk="text" maxlength="60">`);
     html += color(t('stk.f.textColor'), 'color') + color(t('stk.f.bg'), 'bgColor');
   } else if (s.type === 'question') {
-    html += field(t('stk.f.prompt'), `<input type="text" value="${escapeHtml(s.prompt)}" data-stk="prompt" placeholder="${escapeHtml(L.s.askQuestion)}" maxlength="120">`);
+    html += field(t('stk.f.prompt'), `<input type="text" dir="auto" value="${escapeHtml(s.prompt)}" data-stk="prompt" placeholder="${escapeHtml(L.s.askQuestion)}" maxlength="120">`);
   } else if (s.type === 'answer') {
-    html += field(t('stk.f.prompt'), `<input type="text" value="${escapeHtml(s.prompt)}" data-stk="prompt" maxlength="120">`);
-    html += field(t('stk.f.answer'), `<textarea rows="2" data-stk="answer" maxlength="240">${escapeHtml(s.answer)}</textarea>`);
+    html += field(t('stk.f.prompt'), `<input type="text" dir="auto" value="${escapeHtml(s.prompt)}" data-stk="prompt" maxlength="120">`);
+    html += field(t('stk.f.answer'), `<textarea dir="auto" rows="2" data-stk="answer" maxlength="240">${escapeHtml(s.answer)}</textarea>`);
     html += `<div class="row"><label>${escapeHtml(t('stk.f.theme'))}</label><div class="ctl"><select data-stk="theme">${
       Object.keys(ANSWER_THEMES).map((k) => `<option value="${k}" ${s.theme === k ? 'selected' : ''}>${escapeHtml(t('theme.' + k))}</option>`).join('')}</select></div></div>`;
   } else {
-    html += field(t('stk.f.text'), `<textarea rows="2" data-stk="text" maxlength="200">${escapeHtml(s.text)}</textarea>`);
+    html += field(t('stk.f.text'), `<textarea dir="auto" rows="2" data-stk="text" maxlength="200">${escapeHtml(s.text)}</textarea>`);
     html += color(t('stk.f.textColor'), 'color');
     html += `<div class="row"><label>${escapeHtml(t('stk.f.bgStyle'))}</label><div class="ctl"><select data-stk="textBgStyle">${
       ['none', 'solid', 'translucent'].map((k) => `<option value="${k}" ${s.textBgStyle === k ? 'selected' : ''}>${escapeHtml(t('bg.' + k))}</option>`).join('')}</select></div></div>`;
@@ -3638,6 +3698,8 @@ function setupStickerUI() {
   };
   ed.addEventListener('input', onEdit);
   ed.addEventListener('change', onEdit);
+  // Редагування ставить відтворення на паузу: інакше на межі слайда редактор перебудувався б посеред введення
+  ed.addEventListener('focusin', () => { if (pv.playing) pause(); });
   ed.addEventListener('click', (e) => {
     const b = e.target.closest('[data-stk-act]');
     const s = selectedSticker();
@@ -3708,9 +3770,21 @@ function refreshControls() {
 }
 function onStateChange() {
   saveState();
-  refreshControls();
   invalidateTimeline();
+  refreshControls();
   requestRender();
+}
+/** Оновлює тривалості в списку кліпів без повного перебудування (повзунки тривалості фото / кросфейду) */
+function refreshClipTimes() {
+  invalidateTimeline();
+  for (const li of $$('#clipList li.clip')) {
+    const c = curList().find((x) => x.id === li.dataset.id);
+    if (!c) continue;
+    const sub = $('[data-sub]', li);
+    if (sub) sub.textContent = clipSub(c);
+    if (state.mode === 'stories') for (const inp of $$('input[data-clip="photoDur"]', li)) inp.placeholder = state.stories.photoDur;
+  }
+  updateTotals();
 }
 function setMode(mode) {
   if (mode === state.mode || exportJob) return;
@@ -3755,9 +3829,13 @@ function bindControls() {
         v = parseFloat(el.value);
         if (!Number.isFinite(v)) return;
         if (el.dataset.type === 'int') v = Math.max(0, Math.round(v));
+        // max/min обмежують лише стрілки поля — введене вручну значення обмежуємо самі
+        if (el.max !== '' && el.max != null) v = Math.min(v, +el.max);
+        if (el.min !== '' && el.min != null) v = Math.max(v, +el.min);
       } else v = el.value;
       setPath(state, path, v);
       if (path === 'locale') { clearTextCaches(); renderClipList(); buildStickerUI(); }
+      else if (path === 'stories.photoDur' || path.startsWith('seq.')) refreshClipTimes();
       if (['locale', 'caption.text', 'caption.placeholder', 'track.artist', 'track.title', 'stories.replyText'].includes(path)) ensureFonts().then(requestRender);
       onStateChange();
     });
@@ -3830,6 +3908,7 @@ function bindControls() {
     const mode = state.mode;
     state = structuredClone(DEFAULT_STATE);
     state.mode = mode;
+    invalidateTimeline();
     await loadAllAvatars();
     buildAvatarUI();
     afterFrameChange();
@@ -4025,7 +4104,10 @@ async function loadPresetFile(file) {
   try {
     const obj = JSON.parse(await file.text());
     pause();
+    // Пресет — це вигляд інтерфейсу; відкрита вкладка (Reels / Stories) лишається, як і після «Скинути все»
+    const mode = state.mode;
     state = sanitizeState(deepMerge(DEFAULT_STATE, obj));
+    state.mode = mode;
     edit.selected = null;
     invalidateTimeline();
     await loadAllAvatars();
@@ -4150,7 +4232,8 @@ function readExportForm() {
   e.audio = $('#exAudio').checked;
   e.audioBitrate = +$('#exAudioBr').value;
   const name = ($('#exName').value || '').trim().replace(/[\\/:*?"<>|\u0000-\u001f]+/g, '_').replace(/\.(mp4|webm)$/i, '');
-  e.filename = ['reels', 'story'].includes(name) ? '' : name;
+  // Порожньо = стандартна назва поточного режиму (reels / story)
+  e.filename = name === (state.mode === 'stories' ? 'story' : 'reels') ? '' : name;
   const res = $('#exRes').value;
   let w, h;
   if (res === 'custom') { w = +$('#exW').value; h = +$('#exH').value; }
@@ -4679,7 +4762,7 @@ async function init() {
 window.ReelsStudio = {
   get state() { return state; },
   renderFrame, formatCount, formatAgo, randomizeStats, nickError, Nick, applyReferencePreset, addFiles, getTimeline,
-  ensureFonts, loadAllAvatars, seek, play, pause, requestRender, setMode, setUiLang, addSticker, randomComment, LOCALES,
+  ensureFonts, loadAllAvatars, seek, play, pause, requestRender, setMode, setUiLang, addSticker, randomComment, LOCALES, wrapLines, sanitizeState, previewR, stickerHandle, stickerCenter,
   setState(patch) { state = sanitizeState(deepMerge(DEFAULT_STATE, { ...state, ...patch })); afterFrameChange(); onStateChange(); },
   renderTo(canvas, tt, opts = {}) {
     const tl = getTimeline();
