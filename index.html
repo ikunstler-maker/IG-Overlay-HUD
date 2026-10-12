@@ -293,6 +293,20 @@ input[type=color] { width: 44px; height: 30px; padding: 2px; border: 1px solid v
   .mode-tabs { margin-left: 0; }
   .mode-tabs button { padding: 6px 10px; }
 }
+@media (max-width: 430px) {
+  .app-header { gap: 6px; padding: 0 8px; }
+  .mode-tabs button { padding: 6px 8px; gap: 0; }
+  .mode-tabs button svg { display: none; }
+  .header-actions { gap: 6px; }
+  .lang-switch button { padding: 5px 7px; }
+  #btnExportTop { padding-left: 10px; padding-right: 10px; }
+}
+@media (max-width: 350px) {
+  .brand { display: none; }
+}
+@media (max-width: 900px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+}
 </style>
 </head>
 <body>
@@ -492,7 +506,7 @@ input[type=color] { width: 44px; height: 30px; padding: 2px; border: 1px solid v
     <details class="sec" data-mode="reels">
       <summary data-i18n="sec.bottom">Bottom bar</summary>
       <div class="sec-body">
-        <label class="toggle"><input type="checkbox" data-bind="interested.show"><span class="track"></span><span>Not interested / Interested</span></label>
+        <label class="toggle"><input type="checkbox" data-bind="interested.show"><span class="track"></span><span data-i18n="bottom.interested">“Not interested / Interested” buttons</span></label>
         <p class="hint" data-i18n="bottom.hint">Without this bar the right column, author and caption move 50 pt down.</p>
         <div class="row"><label data-i18n="bottom.nav">Navigation</label>
           <div class="ctl"><select data-bind="nav.variant">
@@ -597,7 +611,7 @@ input[type=color] { width: 44px; height: 30px; padding: 2px; border: 1px solid v
       </button>
       <input type="range" id="seek" min="0" max="10" step="0.001" value="0" data-i18n-aria="transport.seek">
       <span class="time" id="timeLabel">00:00 / 00:00</span>
-      <label class="toggle" data-i18n-title="transport.loop"><input type="checkbox" id="loopToggle"><span class="track"></span><span class="time">Loop</span></label>
+      <label class="toggle" data-i18n-title="transport.loop"><input type="checkbox" id="loopToggle"><span class="track"></span><span class="time" data-i18n="transport.loop">Loop</span></label>
     </div>
   </main>
 </div>
@@ -818,6 +832,7 @@ const UI_STRINGS = {
     'cap.showTrack': 'Show track', 'cap.artist': 'Artist', 'cap.title': 'Title',
     'stats.likes': 'Likes', 'stats.comments': 'Comments', 'stats.reposts': 'Reposts', 'stats.saves': 'Saves',
     'stats.hide': 'Hide the like count', 'stats.random': '🎲 Random stats', 'stats.lock': 'Keep this value when randomizing',
+    'bottom.interested': '“Not interested / Interested” buttons',
     'bottom.hint': 'Without this bar the right column, author and caption move 50 pt down.',
     'bottom.nav': 'Navigation', 'bottom.compact': 'Compact (like reels-1)', 'bottom.wide': 'Wide (like reels-2)',
     'bottom.slot3': 'Third button', 'bottom.messages': 'Messages (paper plane)', 'bottom.create': 'Create (+)',
@@ -925,12 +940,13 @@ const UI_STRINGS = {
     'cap.showTrack': 'Показувати трек', 'cap.artist': 'Виконавець', 'cap.title': 'Назва',
     'stats.likes': 'Лайки', 'stats.comments': 'Коментарі', 'stats.reposts': 'Репости', 'stats.saves': 'Збереження',
     'stats.hide': 'Приховати кількість лайків', 'stats.random': '🎲 Випадкова статистика', 'stats.lock': 'Не змінювати при рандомізації',
+    'bottom.interested': 'Кнопки «Не цікаво / Цікаво»',
     'bottom.hint': 'Без цієї панелі права колонка, автор і підпис зсуваються на 50 pt вниз.',
     'bottom.nav': 'Навігація', 'bottom.compact': 'Компактна (як reels-1)', 'bottom.wide': 'Широка (як reels-2)',
     'bottom.slot3': 'Третя кнопка', 'bottom.messages': 'Повідомлення (літачок)', 'bottom.create': 'Створити (+)',
     'bottom.reelsIcon': 'Іконка Reels', 'bottom.square': 'Квадрат із Play', 'bottom.clapper': 'Хлопавка',
     'bottom.dot': 'Червона крапка на повідомленнях', 'bottom.progress': 'Смуга прогресу', 'bottom.progSeq': 'Уся послідовність', 'bottom.progClip': 'Кожен кліп окремо',
-    'av.author': 'Автор', 'av.friend1': 'Friends 1', 'av.friend2': 'Friends 2', 'av.friend3': 'Friends 3', 'av.floating': 'Плаваюча',
+    'av.author': 'Автор', 'av.friend1': 'Друзі 1', 'av.friend2': 'Друзі 2', 'av.friend3': 'Друзі 3', 'av.floating': 'Плаваюча',
     'av.user': 'Ви (навігація)', 'av.upload': 'Завантажити', 'av.url': 'За посиланням', 'av.random': 'Випадкова аватарка', 'av.reset': 'Скинути на дефолтну',
     'av.zoom': 'Масштаб', 'av.x': 'Зсув X', 'av.y': 'Зсув Y', 'av.loadFail': 'Не вдалося відкрити зображення',
     'av.urlPrompt': 'Посилання на зображення (https://…)', 'av.urlFail': 'Не вдалося завантажити зображення. Сервер може забороняти пряме завантаження (CORS).',
