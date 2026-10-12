@@ -1,0 +1,3143 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reels Overlay Studio</title>
+<meta name="description" content="Накладання інтерфейсу Instagram Reels на власні відео та фото з експортом у MP4/WebM прямо в браузері.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<script type="importmap">
+{
+  "imports": {
+    "mediabunny": "https://cdn.jsdelivr.net/npm/mediabunny@1.59.1/dist/bundles/mediabunny.min.mjs",
+    "@mediabunny/aac-encoder": "https://cdn.jsdelivr.net/npm/@mediabunny/aac-encoder@1.59.1/dist/bundles/mediabunny-aac-encoder.min.mjs"
+  }
+}
+</script>
+<style>
+:root {
+  --bg: #0d0e11;
+  --panel: #14161b;
+  --panel2: #1a1d23;
+  --panel3: #22262e;
+  --line: #2a2f38;
+  --line2: #353b46;
+  --text: #e8eaef;
+  --muted: #9aa1ae;
+  --faint: #6b7280;
+  --accent: #8b6cff;
+  --accent-strong: #7151ff;
+  --accent-soft: rgba(139, 108, 255, .16);
+  --danger: #ff5d6c;
+  --ok: #35c98b;
+  --warn: #ffb547;
+  --r: 10px;
+  --r-sm: 7px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 13.5px/1.45 Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+
+/* ---------- Шапка ---------- */
+.app-header {
+  height: 54px; display: flex; align-items: center; gap: 12px;
+  padding: 0 16px; border-bottom: 1px solid var(--line); background: #111318;
+}
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -.01em; font-size: 15px; }
+.brand .logo {
+  width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center;
+  background: linear-gradient(135deg, #ffb36b, #ff4f8b 50%, #8b6cff);
+}
+.brand small { font-weight: 500; color: var(--muted); font-size: 12.5px; }
+.header-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+/* ---------- Кнопки ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 32px; padding: 6px 12px; border-radius: var(--r-sm);
+  background: var(--panel3); border: 1px solid var(--line2); cursor: pointer; white-space: nowrap;
+  transition: background .12s, border-color .12s;
+}
+.btn:hover { background: #2a2f39; }
+.btn:disabled { opacity: .5; cursor: default; }
+.btn.primary { background: var(--accent-strong); border-color: transparent; color: #fff; font-weight: 600; }
+.btn.primary:hover { background: #7f62ff; }
+.btn.ghost { background: transparent; }
+.btn.small { min-height: 26px; padding: 3px 8px; font-size: 12.5px; }
+.btn.danger { color: #ffd0d5; border-color: #5a2a31; background: #2b1a1e; }
+.icon-btn {
+  width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--line2); background: var(--panel3);
+  display: inline-grid; place-items: center; cursor: pointer; padding: 0; font-size: 13px; line-height: 1;
+}
+.icon-btn:hover { background: #2a2f39; }
+.icon-btn.on { background: var(--accent-soft); border-color: var(--accent); }
+
+/* ---------- Розмітка ---------- */
+.layout { display: grid; grid-template-columns: minmax(330px, 400px) 1fr; height: calc(100% - 54px); }
+.settings { overflow-y: auto; background: var(--panel); border-right: 1px solid var(--line); padding: 10px 10px 48px; }
+.stage { position: relative; min-width: 0; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 18px 16px 14px; gap: 14px; }
+.stage-inner { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; }
+
+/* ---------- Секції ---------- */
+details.sec { border: 1px solid var(--line); border-radius: var(--r); background: var(--panel2); margin-bottom: 8px; }
+details.sec > summary {
+  list-style: none; cursor: pointer; padding: 11px 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; user-select: none;
+}
+details.sec > summary::-webkit-details-marker { display: none; }
+details.sec > summary::after {
+  content: ""; margin-left: auto; width: 7px; height: 7px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg); transition: transform .15s; margin-right: 3px;
+}
+details.sec[open] > summary::after { transform: rotate(225deg); }
+details.sec > summary .badge { font-weight: 500; font-size: 11.5px; color: var(--muted); background: var(--panel3); border-radius: 20px; padding: 1px 8px; }
+.sec-body { padding: 2px 14px 14px; display: flex; flex-direction: column; gap: 10px; }
+.subhead { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--faint); margin-top: 6px; }
+.hint { font-size: 12px; color: var(--faint); margin: -4px 0 0; }
+.note { font-size: 12.5px; color: var(--muted); margin: 0; }
+.note.warn { color: var(--warn); }
+.note.err { color: var(--danger); }
+
+.row { display: flex; align-items: center; gap: 10px; min-height: 30px; }
+.row > label:first-child, .row > .lbl { flex: 0 0 40%; color: var(--muted); }
+.row > .ctl { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; }
+.row.col { flex-direction: column; align-items: stretch; gap: 6px; }
+.row.col > label:first-child { flex: none; }
+input[type=text], input[type=number], select, textarea {
+  width: 100%; background: var(--panel3); border: 1px solid var(--line); border-radius: var(--r-sm);
+  padding: 6px 9px; outline: none; min-width: 0; min-height: 32px;
+}
+input[type=number].num { width: 78px; flex: none; }
+input:focus-visible, select:focus-visible, textarea:focus-visible { border-color: var(--accent); }
+input.invalid { border-color: var(--danger); }
+textarea { resize: vertical; min-height: 66px; line-height: 1.4; }
+input[type=range] { width: 100%; accent-color: var(--accent); margin: 0; }
+output { min-width: 50px; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12.5px; }
+.unit { color: var(--faint); font-size: 12.5px; }
+.err-msg { color: var(--danger); font-size: 12px; min-height: 0; }
+
+/* Перемикач */
+.toggle { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; user-select: none; min-height: 28px; }
+.toggle input { position: absolute; opacity: 0; pointer-events: none; }
+.toggle .track { width: 34px; height: 20px; border-radius: 20px; background: #3a404b; position: relative; flex: none; transition: background .15s; }
+.toggle .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: transform .15s; }
+.toggle input:checked + .track { background: var(--accent-strong); }
+.toggle input:checked + .track::after { transform: translateX(14px); }
+.toggle input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- Медіа ---------- */
+.dropzone {
+  border: 1.5px dashed var(--line2); border-radius: var(--r); padding: 14px; text-align: center; color: var(--muted);
+  display: flex; flex-direction: column; gap: 8px; align-items: center; background: rgba(255,255,255,.015);
+}
+.dropzone span { font-size: 12px; color: var(--faint); }
+.dropzone.over { border-color: var(--accent); background: var(--accent-soft); }
+.clips { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.clip { border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--panel3); }
+.clip.dragging { opacity: .45; }
+.clip.drop-before { box-shadow: 0 -2px 0 var(--accent); }
+.clip.drop-after { box-shadow: 0 2px 0 var(--accent); }
+.clip-head { display: flex; align-items: center; gap: 8px; padding: 6px; }
+.clip .handle { cursor: grab; color: var(--faint); padding: 0 2px; font-size: 14px; user-select: none; }
+.clip .thumb { width: 34px; height: 54px; border-radius: 5px; object-fit: cover; background: #000; flex: none; cursor: pointer; }
+.clip .meta { flex: 1; min-width: 0; cursor: pointer; }
+.clip .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; font-size: 12.5px; }
+.clip .sub { color: var(--faint); font-size: 11.5px; }
+.clip .btns { display: flex; gap: 3px; flex: none; }
+.clip .btns .icon-btn { width: 23px; height: 23px; font-size: 11.5px; }
+.clip-body { display: none; padding: 4px 10px 10px; flex-direction: column; gap: 8px; border-top: 1px solid var(--line); }
+.clip.open .clip-body { display: flex; }
+.total { display: flex; justify-content: space-between; color: var(--muted); font-size: 12.5px; }
+.total b { color: var(--text); font-variant-numeric: tabular-nums; }
+.music-box { display: flex; flex-direction: column; gap: 8px; }
+.file-pill { display: flex; align-items: center; gap: 8px; background: var(--panel3); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 5px 8px; font-size: 12.5px; }
+.file-pill .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- Статистика ---------- */
+.stat-row { display: grid; grid-template-columns: 92px 1fr 62px 30px; gap: 8px; align-items: center; }
+.stat-row > span:first-child { color: var(--muted); }
+.stat-row .fmt { font-weight: 600; text-align: center; background: #101216; border-radius: 6px; padding: 5px 0; font-variant-numeric: tabular-nums; font-size: 12.5px; }
+
+/* ---------- Аватарки ---------- */
+.av-row { display: grid; grid-template-columns: 46px 1fr; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); }
+.av-row:first-child { border-top: 0; padding-top: 0; }
+.av-row canvas { width: 46px; height: 46px; border-radius: 50%; background: #000; }
+.av-row .av-name { font-weight: 500; font-size: 12.5px; display: flex; align-items: center; gap: 6px; }
+.av-row .av-ctl { display: flex; flex-direction: column; gap: 4px; }
+.av-row .mini { display: grid; grid-template-columns: 48px 1fr; align-items: center; gap: 6px; font-size: 11.5px; color: var(--faint); }
+
+/* ---------- Сцена / телефон ---------- */
+.phone {
+  position: relative; border-radius: 26px; overflow: hidden; background: #000; flex: none;
+  box-shadow: 0 0 0 7px #050506, 0 0 0 8px #2c2f36, 0 24px 70px rgba(0,0,0,.65);
+}
+.phone canvas { display: block; width: 100%; height: 100%; }
+.phone .calib { position: absolute; left: 0; bottom: 0; width: 100%; height: auto; pointer-events: none; }
+.empty-hint {
+  position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); width: 74%; text-align: center;
+  color: rgba(255,255,255,.62); font-size: 13px; pointer-events: none; line-height: 1.5;
+  border: 1.5px dashed rgba(255,255,255,.22); border-radius: 14px; padding: 16px 12px; background: rgba(0,0,0,.25);
+}
+.transport {
+  width: min(560px, 100%); display: flex; align-items: center; gap: 10px;
+  background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px;
+}
+.transport .play {
+  width: 36px; height: 36px; border-radius: 50%; border: 0; background: #fff; color: #000; cursor: pointer; display: grid; place-items: center; flex: none;
+}
+.transport .time { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12.5px; white-space: nowrap; }
+.drop-overlay {
+  position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(13,14,17,.78);
+  border: 3px dashed var(--accent); font-size: 18px; font-weight: 600; pointer-events: none;
+}
+
+/* ---------- Діалог експорту ---------- */
+dialog.dlg { border: 1px solid var(--line2); border-radius: 14px; padding: 0; background: var(--panel2); color: var(--text); width: min(560px, calc(100% - 24px)); max-height: calc(100% - 24px); }
+dialog.dlg::backdrop { background: rgba(0,0,0,.6); }
+.dlg-inner { display: flex; flex-direction: column; max-height: calc(100vh - 40px); }
+.dlg header { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.dlg header h2 { margin: 0; font-size: 16px; }
+.dlg header .icon-btn { margin-left: auto; }
+.dlg section { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+.dlg footer { display: flex; gap: 8px; justify-content: flex-end; padding: 12px 16px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.seg { display: flex; gap: 6px; flex-wrap: wrap; }
+.seg label { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid var(--line2); border-radius: 8px; cursor: pointer; font-size: 12.5px; }
+.seg label:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.seg input { accent-color: var(--accent); margin: 0; }
+.bar { height: 8px; border-radius: 8px; background: #2b3039; overflow: hidden; }
+.bar > div { height: 100%; width: 0; background: linear-gradient(90deg, #8b6cff, #ff5d9e); transition: width .15s; }
+.prog-line { display: flex; justify-content: space-between; color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.result-video { width: 100%; max-height: 52vh; background: #000; border-radius: 10px; }
+.notes { margin: 0; padding-left: 18px; color: var(--muted); font-size: 12.5px; }
+
+/* ---------- Тости ---------- */
+.toasts { position: fixed; right: 16px; bottom: 16px; z-index: 100; display: flex; flex-direction: column; gap: 8px; max-width: min(380px, calc(100% - 32px)); }
+.toast { background: #23262e; border: 1px solid var(--line2); border-left: 3px solid var(--accent); border-radius: 9px; padding: 10px 12px; box-shadow: 0 10px 30px rgba(0,0,0,.4); font-size: 13px; animation: tin .18s ease-out; }
+.toast.warn { border-left-color: var(--warn); }
+.toast.err { border-left-color: var(--danger); }
+.toast.ok { border-left-color: var(--ok); }
+@keyframes tin { from { transform: translateY(8px); opacity: 0; } }
+
+/* ---------- Мобільна верстка ---------- */
+@media (max-width: 900px) {
+  body { overflow: auto; }
+  .layout { grid-template-columns: 1fr; height: auto; }
+  .stage { order: -1; height: 78vh; min-height: 460px; border-bottom: 1px solid var(--line); }
+  .settings { border-right: 0; overflow: visible; }
+  .brand small { display: none; }
+}
+@media (max-width: 480px) {
+  .row > label:first-child, .row > .lbl { flex-basis: 36%; }
+  .stat-row { grid-template-columns: 76px 1fr 56px 30px; }
+}
+</style>
+</head>
+<body>
+<header class="app-header">
+  <div class="brand">
+    <div class="logo" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M6.5 2h11A4.5 4.5 0 0 1 22 6.5v11a4.5 4.5 0 0 1-4.5 4.5h-11A4.5 4.5 0 0 1 2 17.5v-11A4.5 4.5 0 0 1 6.5 2Zm3 6.2v7.6c0 .6.6.9 1.1.6l6-3.8a.7.7 0 0 0 0-1.2l-6-3.8c-.5-.3-1.1 0-1.1.6Z"/></svg>
+    </div>
+    Reels Overlay Studio <small>інтерфейс Reels поверх ваших відео</small>
+  </div>
+  <div class="header-actions">
+    <button class="btn primary" id="btnExportTop" type="button">Експорт</button>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- =================== Панель налаштувань =================== -->
+  <aside class="settings" id="settings">
+
+    <details class="sec" open>
+      <summary>Медіа <span class="badge" id="clipCount">0</span></summary>
+      <div class="sec-body">
+        <div class="dropzone" id="dropzone">
+          <div>Перетягніть відео або фото сюди</div>
+          <span>mp4, mov, webm · jpg, png, webp</span>
+          <button class="btn small" id="btnAddFiles" type="button">Додати файли</button>
+          <input type="file" id="fileInput" multiple accept="video/*,image/*,.mov,.mp4,.m4v,.webm,.jpg,.jpeg,.png,.webp" hidden>
+        </div>
+        <ul class="clips" id="clipList"></ul>
+        <div class="row"><label>Перехід</label>
+          <div class="ctl"><select data-bind="seq.transition">
+            <option value="cut">Різка зміна</option>
+            <option value="crossfade">Кросфейд</option>
+          </select></div>
+        </div>
+        <div class="row" data-show-if="seq.transition=crossfade"><label>Тривалість кросфейду</label>
+          <div class="ctl"><input type="range" min="0.1" max="2" step="0.05" data-bind="seq.xfade"><output data-out="seq.xfade" data-fmt="sec"></output></div>
+        </div>
+        <div class="total">Загальна тривалість <b id="totalDur">00:00</b></div>
+
+        <div class="subhead">Фонова музика</div>
+        <div class="music-box">
+          <div class="file-pill" id="musicPill" hidden><span>♫</span><span class="name" id="musicName"></span><button class="icon-btn" id="btnMusicRemove" type="button" title="Прибрати музику">✕</button></div>
+          <button class="btn small" id="btnMusicAdd" type="button">Додати аудіофайл…</button>
+          <input type="file" id="musicInput" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.opus,.flac" hidden>
+          <div class="row"><label>Гучність музики</label>
+            <div class="ctl"><input type="range" min="0" max="1" step="0.01" data-bind="music.volume"><output data-out="music.volume" data-fmt="pct"></output></div>
+          </div>
+          <div class="row"><label>Почати трек з</label>
+            <div class="ctl"><input type="number" min="0" step="0.1" data-bind="music.offset" class="num"><span class="unit">с</span></div>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <details class="sec">
+      <summary>Верхня панель</summary>
+      <div class="sec-body">
+        <label class="toggle"><input type="checkbox" data-bind="topBar.show"><span class="track"></span><span>Показувати «Reels / Friends»</span></label>
+        <div class="row"><label>Аватарок Friends</label>
+          <div class="ctl"><select data-bind="topBar.friends" data-type="int">
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+          </select></div>
+        </div>
+        <div class="row"><label>Відступ від верху</label>
+          <div class="ctl"><input type="range" min="-40" max="80" step="1" data-bind="topBar.offset"><output data-out="topBar.offset" data-fmt="pt"></output></div>
+        </div>
+        <p class="hint">Базове положення: 78 pt для 9:19.5 і 44 pt для 9:16.</p>
+      </div>
+    </details>
+
+    <details class="sec" open>
+      <summary>Автор</summary>
+      <div class="sec-body">
+        <div class="row col"><label for="nickInput">Нікнейм</label>
+          <div class="ctl" style="display:flex;gap:8px">
+            <input type="text" id="nickInput" maxlength="30" autocomplete="off" spellcheck="false" autocapitalize="off">
+            <button class="icon-btn" id="btnNick" type="button" title="Випадковий нікнейм" style="width:36px;height:32px;font-size:16px">🎲</button>
+          </div>
+          <div class="err-msg" id="nickErr"></div>
+        </div>
+        <label class="toggle"><input type="checkbox" data-bind="author.verified"><span class="track"></span><span>Галочка верифікації</span></label>
+        <label class="toggle"><input type="checkbox" data-bind="author.follow"><span class="track"></span><span>Кнопка Follow</span></label>
+        <label class="toggle"><input type="checkbox" data-bind="floating.show"><span class="track"></span><span>Плаваюча аватарка над автором</span></label>
+      </div>
+    </details>
+
+    <details class="sec">
+      <summary>Підпис і трек</summary>
+      <div class="sec-body">
+        <div class="row col"><label>Підпис</label>
+          <textarea data-bind="caption.text" rows="3" placeholder="Порожньо — показується заглушка"></textarea>
+          <p class="hint">У кадрі видно один рядок; довший текст обрізається « ...». Емодзі підтримуються.</p>
+        </div>
+        <div class="row"><label>Заглушка</label><div class="ctl"><input type="text" data-bind="caption.placeholder"></div></div>
+        <label class="toggle"><input type="checkbox" data-bind="track.show"><span class="track"></span><span>Показувати трек</span></label>
+        <div class="row" data-show-if="track.show"><label>Виконавець</label><div class="ctl"><input type="text" data-bind="track.artist"></div></div>
+        <div class="row" data-show-if="track.show"><label>Назва</label><div class="ctl"><input type="text" data-bind="track.title"></div></div>
+      </div>
+    </details>
+
+    <details class="sec">
+      <summary>Статистика</summary>
+      <div class="sec-body">
+        <div class="stat-row"><span>Лайки</span><input type="number" min="0" step="1" data-bind="stats.likes" data-type="int"><span class="fmt" data-fmt-count="stats.likes"></span><button class="icon-btn" type="button" data-lock="likes" title="Не змінювати при рандомізації"></button></div>
+        <div class="stat-row"><span>Коментарі</span><input type="number" min="0" step="1" data-bind="stats.comments" data-type="int"><span class="fmt" data-fmt-count="stats.comments"></span><button class="icon-btn" type="button" data-lock="comments" title="Не змінювати при рандомізації"></button></div>
+        <div class="stat-row"><span>Репости</span><input type="number" min="0" step="1" data-bind="stats.reposts" data-type="int"><span class="fmt" data-fmt-count="stats.reposts"></span><button class="icon-btn" type="button" data-lock="reposts" title="Не змінювати при рандомізації"></button></div>
+        <div class="stat-row"><span>Збереження</span><input type="number" min="0" step="1" data-bind="stats.saves" data-type="int"><span class="fmt" data-fmt-count="stats.saves"></span><button class="icon-btn" type="button" data-lock="saves" title="Не змінювати при рандомізації"></button></div>
+        <label class="toggle"><input type="checkbox" data-bind="stats.hideLikes"><span class="track"></span><span>Приховати кількість лайків («Likes»)</span></label>
+        <button class="btn" id="btnStats" type="button">🎲 Випадкова статистика</button>
+      </div>
+    </details>
+
+    <details class="sec">
+      <summary>Нижня панель</summary>
+      <div class="sec-body">
+        <label class="toggle"><input type="checkbox" data-bind="interested.show"><span class="track"></span><span>Not interested / Interested</span></label>
+        <p class="hint">Без цієї панелі права колонка, автор і підпис зсуваються на 50 pt вниз.</p>
+        <div class="row"><label>Навігація</label>
+          <div class="ctl"><select data-bind="nav.variant">
+            <option value="compact">Компактна (як reels-1)</option>
+            <option value="wide">Широка (як reels-2)</option>
+          </select></div>
+        </div>
+        <div class="row"><label>Третя кнопка</label>
+          <div class="ctl"><select data-bind="nav.slot3">
+            <option value="messages">Повідомлення (літачок)</option>
+            <option value="create">Створити (+)</option>
+          </select></div>
+        </div>
+        <div class="row"><label>Іконка Reels</label>
+          <div class="ctl"><select data-bind="nav.reelsIcon">
+            <option value="square">Квадрат із Play</option>
+            <option value="clapper">Хлопавка</option>
+          </select></div>
+        </div>
+        <label class="toggle" data-show-if="nav.slot3=messages"><input type="checkbox" data-bind="nav.dot"><span class="track"></span><span>Червона крапка на повідомленнях</span></label>
+        <div class="row"><label>Смуга прогресу</label>
+          <div class="ctl"><select data-bind="progress.mode">
+            <option value="sequence">Уся послідовність</option>
+            <option value="clip">Кожен кліп окремо</option>
+          </select></div>
+        </div>
+      </div>
+    </details>
+
+    <details class="sec">
+      <summary>Аватарки</summary>
+      <div class="sec-body" id="avatarList"></div>
+    </details>
+
+    <details class="sec">
+      <summary>Вигляд</summary>
+      <div class="sec-body">
+        <div class="row"><label>Пресет макета</label>
+          <div class="ctl"><select id="framePreset">
+            <option value="1080x2340">iPhone 9:19.5 · 1080×2340</option>
+            <option value="1080x1920">9:16 · 1080×1920</option>
+            <option value="720x1280">9:16 · 720×1280</option>
+            <option value="custom">Власна роздільна здатність</option>
+          </select></div>
+        </div>
+        <div class="row" id="customFrameRow" hidden><label>Розмір, px</label>
+          <div class="ctl"><input type="number" id="frameW" min="240" max="4096" step="2" class="num"> × <input type="number" id="frameH" min="240" max="4096" step="2" class="num"></div>
+        </div>
+        <div class="row"><label>Затемнення</label>
+          <div class="ctl"><input type="range" min="0" max="100" step="1" data-bind="look.gradient"><output data-out="look.gradient" data-fmt="int%"></output></div>
+        </div>
+        <div class="row"><label>Шрифт</label>
+          <div class="ctl"><select data-bind="look.font">
+            <option value="inter">Inter</option>
+            <option value="system">Системний (SF Pro)</option>
+          </select></div>
+        </div>
+        <div class="subhead">Калібрування</div>
+        <label class="toggle"><input type="checkbox" data-bind="look.calib"><span class="track"></span><span>Накласти референс поверх прев'ю</span></label>
+        <div class="row" data-show-if="look.calib"><label>Скріншот</label>
+          <div class="ctl"><select data-bind="look.calibRef">
+            <option value="reels-1">reference/reels-1.png</option>
+            <option value="reels-2">reference/reels-2.png</option>
+          </select></div>
+        </div>
+        <div class="row" data-show-if="look.calib"><label>Прозорість</label>
+          <div class="ctl"><input type="range" min="0" max="100" step="1" data-bind="look.calibOpacity"><output data-out="look.calibOpacity" data-fmt="int%"></output></div>
+        </div>
+        <button class="btn small" id="btnApplyRef" type="button" data-show-if="look.calib">Підлаштувати налаштування під скріншот</button>
+        <div class="subhead">Пресет налаштувань</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn small" id="btnPresetSave" type="button">Зберегти JSON</button>
+          <button class="btn small" id="btnPresetLoad" type="button">Завантажити JSON</button>
+          <button class="btn small danger" id="btnReset" type="button">Скинути все</button>
+          <input type="file" id="presetInput" accept="application/json,.json" hidden>
+        </div>
+      </div>
+    </details>
+
+    <details class="sec">
+      <summary>Експорт</summary>
+      <div class="sec-body">
+        <p class="note" id="exportSummary"></p>
+        <button class="btn primary" id="btnExportSide" type="button">Налаштувати й експортувати…</button>
+      </div>
+    </details>
+  </aside>
+
+  <!-- =================== Прев'ю =================== -->
+  <main class="stage" id="stage">
+    <div class="stage-inner" id="stageInner">
+      <div class="phone" id="phone">
+        <canvas id="preview" aria-label="Прев'ю Reels"></canvas>
+        <img class="calib" id="calibImg" alt="" hidden>
+        <div class="empty-hint" id="emptyHint">Перетягніть сюди відео або фото<br>або натисніть «Додати файли» в розділі «Медіа»</div>
+      </div>
+    </div>
+    <div class="transport" id="transport">
+      <button class="play" id="btnPlay" type="button" title="Відтворити / пауза (пробіл)" aria-label="Відтворити">
+        <svg id="icPlay" width="14" height="16" viewBox="0 0 14 16"><path d="M1 1.6v12.8c0 .8.9 1.3 1.6.8l10-6.4a1 1 0 0 0 0-1.6l-10-6.4C1.9.3 1 .8 1 1.6Z" fill="currentColor"/></svg>
+        <svg id="icPause" width="14" height="16" viewBox="0 0 14 16" hidden><rect x="1.5" y="1" width="4" height="14" rx="1" fill="currentColor"/><rect x="8.5" y="1" width="4" height="14" rx="1" fill="currentColor"/></svg>
+      </button>
+      <input type="range" id="seek" min="0" max="10" step="0.001" value="0" aria-label="Перемотування">
+      <span class="time" id="timeLabel">00:00 / 00:00</span>
+      <label class="toggle" title="Повтор"><input type="checkbox" id="loopToggle"><span class="track"></span><span class="time">Loop</span></label>
+    </div>
+  </main>
+</div>
+
+<!-- =================== Діалог експорту =================== -->
+<dialog class="dlg" id="exportDlg">
+  <form method="dialog" class="dlg-inner" id="exportForm">
+    <header><h2>Експорт відео</h2><button type="button" class="icon-btn" id="exX" aria-label="Закрити">✕</button></header>
+    <section id="exSettings">
+      <div class="row"><label>Формат</label>
+        <div class="ctl seg">
+          <label><input type="radio" name="exFormat" value="mp4"> MP4 · H.264 + AAC</label>
+          <label><input type="radio" name="exFormat" value="webm"> WebM · VP9 + Opus</label>
+        </div>
+      </div>
+      <div class="row"><label>Роздільна здатність</label>
+        <div class="ctl"><select id="exRes">
+          <option value="1080x1920">1080×1920 (9:16)</option>
+          <option value="720x1280">720×1280 (9:16)</option>
+          <option value="1080x2340">1080×2340 (iPhone)</option>
+          <option value="custom">Власна…</option>
+        </select></div>
+      </div>
+      <div class="row" id="exCustomRow" hidden><label>Ширина × висота</label>
+        <div class="ctl"><input type="number" id="exW" min="240" max="4096" step="2" class="num"> × <input type="number" id="exH" min="240" max="4096" step="2" class="num"></div>
+      </div>
+      <p class="hint">Роздільна здатність задає й пропорції прев'ю — кадр завжди збігається з експортом.</p>
+      <div class="row"><label>Частота кадрів</label>
+        <div class="ctl seg">
+          <label><input type="radio" name="exFps" value="30"> 30 fps</label>
+          <label><input type="radio" name="exFps" value="60"> 60 fps</label>
+        </div>
+      </div>
+      <div class="row"><label>Якість відео</label>
+        <div class="ctl"><select id="exQuality">
+          <option value="low">Низька</option>
+          <option value="medium">Середня</option>
+          <option value="high">Висока</option>
+          <option value="custom">Бітрейт вручну</option>
+        </select></div>
+      </div>
+      <div class="row" id="exBitrateRow" hidden><label>Бітрейт</label>
+        <div class="ctl"><input type="range" id="exBitrate" min="4" max="20" step="1"><output id="exBitrateOut"></output></div>
+      </div>
+      <div class="row"><label>Звук</label>
+        <div class="ctl">
+          <label class="toggle"><input type="checkbox" id="exAudio"><span class="track"></span><span>Зі звуком</span></label>
+          <select id="exAudioBr" style="width:auto"><option value="128">128 кбіт/с</option><option value="192">192 кбіт/с</option></select>
+        </div>
+      </div>
+      <div class="row"><label>Ім'я файлу</label>
+        <div class="ctl"><input type="text" id="exName" spellcheck="false"><span class="unit" id="exExt">.mp4</span></div>
+      </div>
+      <p class="note" id="exSupport"></p>
+    </section>
+    <section id="exProgress" hidden>
+      <div class="prog-line"><span id="exPhase">Підготовка…</span><span id="exPct">0%</span></div>
+      <div class="bar"><div id="exBar"></div></div>
+      <div class="prog-line"><span id="exFrames"></span><span id="exEta"></span></div>
+      <p class="note warn" id="exRealtimeNote" hidden>Запасний режим: запис іде в реальному часі, тож триватиме стільки ж, скільки відео. Не перемикайте вкладку.</p>
+    </section>
+    <section id="exResult" hidden>
+      <video class="result-video" id="exVideo" controls playsinline></video>
+      <p class="note" id="exResultInfo"></p>
+      <ul class="notes" id="exNotes"></ul>
+    </section>
+    <section id="exError" hidden>
+      <p class="note err" id="exErrorText"></p>
+    </section>
+    <footer>
+      <button class="btn" type="button" id="exFallback" hidden>Спробувати запасний метод</button>
+      <button class="btn" type="button" id="exDownload" hidden>Завантажити ще раз</button>
+      <button class="btn" type="button" id="exCancel" hidden>Скасувати</button>
+      <button class="btn" type="button" id="exClose">Закрити</button>
+      <button class="btn primary" type="button" id="exStart">Почати експорт</button>
+    </footer>
+  </form>
+</dialog>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="drop-overlay" id="dropOverlay" hidden>Відпустіть, щоб додати файли</div>
+
+<script type="module">
+/* =====================================================================
+   Reels Overlay Studio — один файл, без збірки.
+   Кадр (медіа + інтерфейс) малює ОДНА функція renderFrame() — і в прев'ю,
+   і під час експорту. Усі анімації залежать лише від часу таймлайну t.
+   ===================================================================== */
+
+// ============================== 1. Утиліти ==============================
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const rand = (a, b) => a + Math.random() * (b - a);
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const uid = () => Math.random().toString(36).slice(2, 10);
+const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+const TAU = Math.PI * 2;
+
+function debounce(fn, ms) {
+  let id;
+  return (...a) => { clearTimeout(id); id = setTimeout(() => fn(...a), ms); };
+}
+function fmtTime(sec) {
+  sec = Math.max(0, Number.isFinite(sec) ? sec : 0);
+  const m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+function getPath(o, p) { return p.split('.').reduce((a, k) => (a == null ? undefined : a[k]), o); }
+function setPath(o, p, v) {
+  const ks = p.split('.');
+  let a = o;
+  for (let i = 0; i < ks.length - 1; i++) a = a[ks[i]] ??= {};
+  a[ks[ks.length - 1]] = v;
+}
+function deepMerge(def, val) {
+  if (!isObj(def)) {
+    if (def === null) return (val === null || typeof val === 'string') ? val : def;
+    if (typeof def === 'number') return (typeof val === 'number' && Number.isFinite(val)) ? val : def;
+    return typeof val === typeof def ? val : def;
+  }
+  const out = {};
+  for (const k of Object.keys(def)) out[k] = deepMerge(def[k], isObj(val) ? val[k] : undefined);
+  return out;
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function once(el, ev, timeoutMs = 20000) {
+  return new Promise((resolve, reject) => {
+    const ok = () => { cleanup(); resolve(); };
+    const bad = () => { cleanup(); reject(new Error(`Помилка під час «${ev}»`)); };
+    const to = setTimeout(() => { cleanup(); reject(new Error(`Час очікування «${ev}» вичерпано`)); }, timeoutMs);
+    function cleanup() { clearTimeout(to); el.removeEventListener(ev, ok); el.removeEventListener('error', bad); }
+    el.addEventListener(ev, ok, { once: true });
+    el.addEventListener('error', bad, { once: true });
+  });
+}
+function makeCanvas(w, h) {
+  if (typeof OffscreenCanvas !== 'undefined') return new OffscreenCanvas(w, h);
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  return c;
+}
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+function toast(msg, kind = '', ms = 4200) {
+  const el = document.createElement('div');
+  el.className = 'toast ' + kind;
+  el.textContent = msg;
+  $('#toasts').append(el);
+  setTimeout(() => el.remove(), ms);
+}
+
+// ===================== 2. Формат чисел як в Instagram (7.1) =====================
+function formatCount(n) {
+  n = Math.max(0, Math.floor(Number(n) || 0));
+  if (n < 1e4) return n.toLocaleString('en-US');
+  const tenths = (v) => (v % 10 === 0 ? String(v / 10) : (v / 10).toFixed(1));
+  if (n < 1e5) return tenths(Math.floor(n / 100)) + 'K';
+  if (n < 1e6) return Math.floor(n / 1e3) + 'K';
+  if (n < 1e7) return tenths(Math.floor(n / 1e5)) + 'M';
+  if (n < 1e9) return Math.floor(n / 1e6) + 'M';
+  return tenths(Math.floor(n / 1e8)) + 'B';
+}
+
+// ===================== 3. База нікнеймів (7.3) =====================
+// Гендерно нейтральні, без імен, брендів і знаменитостей.
+const NICK_DB = {
+  ready: [
+    'kiwi.cloud', 'mochi_04', 'sleepy.noodle', 'pixelpebble', 'froggyfroggy', 'not.a.pebble', 'its.just.toast', 'cosmo.kiwi', 'peachy.static', 'sunny.dumpling',
+    'velvet.moth', 'lil.cactus', 'x_mochi_x', 'bluuue.sky', 'noodle.exe', 'pebble.irl', 'cloudy_days_', 'matcha.mood', 'waffle__', 'boba.xo',
+    'mangooo', 'static.bloom', 'pixel_cloud_', 'kiwi2009', 'snail.mail.only', 'moss.and.mist', 'orbit.snack', 'comet.crumbs', 'teacup.thunder', 'sock.drawer',
+    'raccoon.energy', 'capybara.chill', 'axolotl.irl', 'otterly.sleepy', 'beanie.weather', 'rainy.radio', 'lofi.lagoon', 'glitch.garden', 'crayon.cosmos', 'doodle.cave',
+    'pudding.planet', 'sprinkle.storm', 'marble.moon', 'velvet.void', 'acorn.archive', 'pinecone.post', 'puddle.hopper', 'cozy.cactus', 'fuzzy.fern', 'wobbly.walrus',
+    'goofy.gecko', 'sleepy.sloth', 'dizzy.dino', 'grumpy.toad', 'bouncy.bean', 'crispy.cloud', 'soggy.toast', 'sparkly.snail', 'misty.moth', 'chonky.pigeon',
+    'smol.turnip', 'zesty.lime', 'mellow.melon', 'quiet.kettle', 'loud.lemon', 'tiny.teapot', 'the.noodle.club', 'its.mango.time', 'not.so.sunny', 'lilpickle',
+    'x_froggy_x', 'cactus_x', 'nebula__', 'dumpling.xo', 'pebble.exe', 'kettle.irl', 'moonbeam_02', 'tofu_2011', 'fern.2008', 'static_404',
+    'comet777', 'pixel.dust', 'oat.milk.only', 'bean.there', 'toast.and.jam', 'jam.session', 'pickle.party', 'plum.pixels', 'lemon.drop', 'matcha.mochi',
+    'snack.orbit', 'cloud.nine.ish', 'sunny.side.up', 'radish.radio', 'turnip.tuesday', 'miso.happy', 'wasabi.wave', 'yuzu.yawn', 'boba.bubble', 'crumpet.club',
+    'scone.zone', 'muffin.mode', 'bagel.bytes', 'pretzel.logic', 'taco.cloud', 'ramen.rain', 'udon.know', 'tofu.tornado', 'dango.dreams', 'onigiri.orbit',
+    'gyoza.galaxy', 'bao.bun.bun', 'kimchi.comet', 'mochi.meteor', 'sushi.static', 'frog.in.a.hat', 'snail.speed', 'moth.to.lamp', 'owl.be.there', 'duck.duck.pixel',
+    'loose.goose', 'hedgehog.hugs', 'sloth.mode', 'otter.space', 'penguin.pebble', 'puffin.puff', 'walrus.waltz', 'narwhal.nap', 'squid.ink', 'octo.doodle',
+    'jelly.drift', 'crab.walk', 'shrimp.chips', 'lobster.lofi', 'axolotl.blep', 'cosmic.crumb', 'starry.sock', 'orbit.otter', 'rocket.radish', 'lunar.lettuce',
+    'solar.sprout', 'eclipse.egg', 'meteor.muffin', 'galaxy.gum', 'teal.teapot', 'indigo.ink', 'lilac.lamp', 'lavender.loop', 'mauve.moss', 'rust.robot',
+    'golden.gourd', 'copper.kettle', 'charcoal.cat', 'onyx.owl', 'obsidian.orb', 'neon.newt', 'pastel.pixel', 'sepia.snail', 'khaki.koala', 'ochre.otter',
+    'cobalt.comet', 'azure.acorn', 'velvet.button', 'static.sock', 'pixel.pillow', 'blanket.burrito', 'teacup.tide', 'kettle.kite', 'crayon.cloud', 'cassette.cat',
+    'vinyl.vibes', 'floppy.frog', 'lantern.leaf', 'candle.comet', 'mirror.moss', 'compass.cloud', 'kite.kiwi', 'balloon.bean', 'bubble.bath.only', 'marble.mango',
+    'puzzle.pebble', 'dice.dumpling', 'sleepy.static', 'dreamy.dumpling', 'cozy.comet', 'comfy.cloud', 'gloomy.gourd', 'moody.moon', 'chill.chips', 'lazy.lemon',
+    'sneaky.snail', 'silly.sprout', 'fluffy.fog', 'squishy.squid', 'crunchy.leaf', 'sticky.jam', 'shiny.shell', 'glowy.gecko', 'foggy.fern', 'giddy.goose',
+    'snappy.crab', 'zippy.zebra', 'jolly.jelly', 'merry.mochi', 'happy.hippo', 'calm.koala', 'wild.walnut', 'tiny.tadpole', 'chunky.chipmunk', 'salty.seal',
+    'sour.plum', 'tangy.tangerine', 'frosty.fox', 'toasty.toad', 'breezy.bee', 'stormy.sparrow', 'windy.wombat', 'curious.cactus', 'weird.waffle', 'odd.otter',
+    'random.radish', 'lucky.lychee', 'not.a.robot', 'its.the.moss', 'the.last.dumpling', 'lil.moth', 'lilnoodle', 'x_pixel_x', 'kiwi_x', 'mochi.exe',
+  ],
+  words: {
+    food: `kiwi mango peach mochi noodle dumpling waffle pancake muffin donut bagel pretzel nacho taco burrito sushi ramen udon tofu boba latte
+      matcha cocoa toast butter jam pickle lemon lime melon berry plum pear fig grape papaya guava lychee coconut banana cereal popcorn nugget
+      biscuit crumpet scone crepe churro gelato sorbet sundae sprinkle caramel toffee fudge brownie cupcake macaron pudding custard syrup maple
+      cinnamon nutmeg mint chai soda radish turnip carrot pea bean sprout onion garlic potato tater corn kale beet leek squash pumpkin peanut
+      cashew almond walnut pistachio dango onigiri bento gyoza bao kimchi miso wasabi yuzu tamago croissant baguette brioche pesto ravioli gnocchi
+      pizza salsa falafel hummus pita samosa oat oatmeal granola yogurt cheese tangerine apricot nectarine mandarin kumquat persimmon pomelo
+      quince rhubarb lettuce gourd waffles nachos dumplings pancakes`,
+    nature: `cloud mist fog breeze pebble stone moss fern leaf petal acorn pinecone meadow forest grove canyon cliff lagoon tide wave shore dune
+      desert tundra glacier frost snow snowflake icicle puddle creek pond lake ocean reef kelp seashell sand mud bloom twig branch bark root thorn
+      cactus bamboo lotus orchid cedar birch oak pine spruce sunflower dandelion thistle nettle mushroom shroom truffle storm thunder lightning
+      rainbow drizzle sleet hail volcano island valley hill mountain peak summit cave crater flame spark smoke dew raindrop sunset sunrise horizon
+      prairie marsh swamp bog fjord geyser boulder gravel quartz pollen nectar seedling sapling vine lichen algae waterfall hurricane tornado
+      monsoon blizzard avalanche iceberg sky`,
+    animals: `froggy frog toad newt gecko lizard turtle tortoise snail slug bee bumblebee moth beetle ant cricket otter badger ferret hamster gerbil
+      bunny rabbit hare fox wolf bear panda koala sloth lemur llama alpaca goat sheep lamb cow piggy duck duckling goose swan owl crow raven
+      finch sparrow pigeon parrot penguin puffin seal walrus whale dolphin orca shark squid octopus jellyfish crab shrimp lobster axolotl platypus
+      capybara hedgehog porcupine mole mouse bat deer moose elk bison yak camel zebra giraffe hippo rhino tiger kitten cat puppy pup doggo pony
+      unicorn dragon dino raptor wombat quokka meerkat possum raccoon skunk chipmunk squirrel worm caterpillar butterfly firefly tadpole minnow
+      guppy koi tuna sardine eel starfish urchin manatee narwhal pelican flamingo toucan hornet gnu ibex lynx ocelot mantis cicada dragonfly
+      seahorse pufferfish stingray anglerfish`,
+    space: `cosmo cosmic comet star starry nebula galaxy orbit rocket astro lunar moon moony solar sunny sunbeam eclipse meteor asteroid planet
+      stardust galactic zenith quasar pulsar cosmonaut ufo alien satellite gravity void vortex celestial starlight moonbeam sunspot supernova
+      blackhole wormhole spaceship rover telescope cosmos astral parsec photon neutron proton ion atom plasma orbiter lander module starfield
+      moonlight moonwalk spacedust rocketship`,
+    colors: `blue teal cyan aqua navy indigo lilac lavender mauve magenta rust golden gold silver bronze copper beige cream ivory gray grey slate
+      charcoal ink onyx obsidian jet white black crimson maroon burgundy neon pastel chroma hue tint sepia khaki ochre mustard cobalt azure
+      cerulean turquoise emerald viridian umber taupe vanilla periwinkle chartreuse fuchsia denim graphite pewter`,
+    objects: `pixel static velvet button sock mitten pillow blanket teacup kettle spoon ladle pencil crayon marker eraser notebook sticker stamp
+      envelope postcard cassette vinyl record radio joystick floppy disk modem router cable battery lamp lantern candle mirror window door key
+      clock compass map globe kite balloon bubble marble yoyo puzzle domino dice token coin crystal prism gem bead ribbon thread yarn sweater
+      hoodie beanie scarf boots sneaker backpack umbrella raincoat bucket shovel broom sponge soap towel slipper pajama teapot mug jar bottle
+      cork straw napkin bowl ladder rope anchor sail paddle raft canoe tent magnet gadget widget gizmo robot glitch byte cache emoji meme gif
+      synth pager keyboard cursor folder lofi wifi cardboard origami confetti glitter doodle scribble sketch canvas paint brush easel chalk vase plant`,
+    moods: `sleepy dreamy cozy comfy gloomy moody chill chilly lazy sneaky silly goofy wobbly bouncy fluffy fuzzy squishy crunchy crispy soggy
+      sticky sparkly glittery shiny glowy misty foggy dizzy giddy grumpy snappy zippy jolly merry happy mellow calm quiet loud wild tiny smol
+      chonky chunky salty sweet sour zesty tangy frosty toasty breezy cloudy rainy stormy windy sleepless restless curious weird odd random lucky
+      clumsy nerdy geeky artsy crafty lowkey soft gentle brave bold shy sly witty quirky zany wacky kooky spooky eerie ghostly hollow lost faded
+      hazy blurry glitchy retro vintage analog digital cyber awkward snoozy hungry cranky peppy jumpy loopy wiggly squiggly twisty swirly sparky
+      zappy buzzy fizzy bubbly gooey crumbly melty drowsy floaty wavy spiky pointy bumpy lumpy dusty rusty scruffy tidy messy nifty groovy funky
+      jazzy cheeky plucky dorky sad mild humble`,
+  },
+  prefixes: ['the.', 'its.', 'not.', 'lil', 'lil.', 'x_'],
+  suffixes: ['_x', '__', '.xo', '.irl', '.exe'],
+  // Заборонені слова: гендерно забарвлені, образливі тощо.
+  bannedSubstr: ['girl', 'boy', 'queen', 'princ', 'babe', 'daddy', 'mommy', 'mama', 'papa', 'sexy', 'lady', 'wife', 'husband', 'dude', 'bitch',
+    'slut', 'whore', 'fuck', 'shit', 'dick', 'cock', 'puss', 'porn', 'nude', 'naked', 'xxx', 'nazi', 'kill', 'drug', 'weed'],
+  bannedTokens: ['king', 'bro', 'bros', 'sis', 'man', 'men', 'guy', 'guys', 'gal', 'gals', 'mom', 'dad', 'miss', 'mr', 'mrs', 'ms', 'son', 'bae',
+    'hun', 'gf', 'bf', 'him', 'her', 'his', 'hers', 'she', 'he', 'ass', 'cum', 'sex', 'hot', 'milf', 'lord', 'duke', 'sir', 'madam', 'lad', 'lass',
+    'bride', 'groom', 'diva', 'belle', 'beau', 'hunk', 'stud', 'baby', 'hoe', 'anal', 'die'],
+};
+
+function nickError(n) {
+  if (!n) return 'Нікнейм не може бути порожнім';
+  if (n.length > 30) return 'Максимум 30 символів';
+  if (/[^a-z0-9._]/.test(n)) return 'Дозволено лише a–z, 0–9, «.» та «_»';
+  if (n.startsWith('.') || n.endsWith('.')) return 'Не може починатися чи закінчуватися крапкою';
+  if (n.includes('..')) return 'Дві крапки підряд не дозволені';
+  return '';
+}
+function nickBanned(n) {
+  const flat = n.replace(/[._0-9]/g, '');
+  if (NICK_DB.bannedSubstr.some((w) => flat.includes(w))) return true;
+  return n.split(/[._0-9]+/).filter(Boolean).some((t) => NICK_DB.bannedTokens.includes(t));
+}
+
+const Nick = (() => {
+  const words = [...new Set(Object.values(NICK_DB.words).flatMap((s) => s.split(/\s+/)).filter(Boolean))]
+    .filter((w) => /^[a-z]+$/.test(w) && !nickBanned(w));
+  const shortWords = words.filter((w) => w.length <= 7);
+  const ready = NICK_DB.ready.filter((n) => !nickError(n) && !nickBanned(n));
+  let pool = shuffle([...ready]);
+  const used = new Set();
+  const w = () => pick(words);
+  const digits = () => {
+    const r = Math.random();
+    if (r < 0.4) return String(1996 + Math.floor(Math.random() * 17));
+    if (r < 0.8) return String(Math.floor(Math.random() * 100)).padStart(2, '0');
+    return pick(['7', '9', '11', '13', '21', '22', '23', '24', '25', '99', '101', '111', '123', '222', '333', '404', '555', '777', '808', '999']);
+  };
+  const stretch = (x) => {
+    const idx = [...x].map((c, i) => ('aeiouy'.includes(c) ? i : -1)).filter((i) => i >= 0);
+    if (!idx.length) return x + x[x.length - 1].repeat(2);
+    const i = pick(idx.slice(-2));
+    return x.slice(0, i + 1) + x[i].repeat(1 + Math.floor(Math.random() * 2) + 1) + x.slice(i + 1);
+  };
+  const templates = [
+    [3, () => w() + pick(['', '', '_', '.']) + digits()],                       // kiwi2009, mochi_04
+    [3, () => w() + '.' + w()],                                                  // sunny.noodle
+    [2, () => w() + '_' + w() + pick(['', '_'])],                                // pixel_cloud_
+    [2, () => stretch(w()) + pick(['', '', '.' + w(), '_' + digits()])],        // mochiii, bluuue.sky
+    [2, () => {                                                                   // the. / its. / not. / lil / x_…_x
+      const p = pick(NICK_DB.prefixes);
+      if (p === 'x_') return 'x_' + w() + '_x';
+      return p + w() + (Math.random() < 0.25 ? '.' + w() : '');
+    }],
+    [2, () => w() + pick(NICK_DB.suffixes)],                                     // _x, __, .xo, .irl, .exe
+    [1, () => { const a = pick(shortWords); return a + pick(['', '', '.', '_']) + a; }], // froggyfroggy
+  ];
+  const totalWeight = templates.reduce((s, t) => s + t[0], 0);
+  function fromTemplate() {
+    let r = Math.random() * totalWeight;
+    for (const [wt, fn] of templates) { if ((r -= wt) <= 0) return fn(); }
+    return templates[0][1]();
+  }
+  function generate() {
+    for (let i = 0; i < 400; i++) {
+      const n = (pool.length && Math.random() < 0.3) ? pool.pop() : fromTemplate();
+      if (nickError(n) || nickBanned(n) || used.has(n)) continue;
+      used.add(n);
+      return n;
+    }
+    let n;
+    do n = w() + '.' + String(Math.floor(Math.random() * 1e6)); while (used.has(n));
+    used.add(n);
+    return n;
+  }
+  return { generate, words, ready, used };
+})();
+
+// ============================== 4. Стан ==============================
+const STORAGE_KEY = 'reels-overlay-studio:v1';
+const AVATAR_SLOTS = ['author', 'friend1', 'friend2', 'friend3', 'floating', 'user'];
+const AVATAR_META = {
+  author: { label: 'Автор', colors: ['#ffb36b', '#ff4f8b'] },
+  friend1: { label: 'Friends 1', colors: ['#f6d365', '#f0743e'], initials: 'JS' },
+  friend2: { label: 'Friends 2', colors: ['#a1c4fd', '#5b6ff0'], initials: 'MK' },
+  friend3: { label: 'Friends 3', colors: ['#84fab0', '#1f9e95'], initials: 'AL' },
+  floating: { label: 'Плаваюча', colors: ['#fbc2eb', '#9d63ff'], initials: 'RV' },
+  user: { label: 'Користувач (навігація)', colors: ['#ffd36e', '#3d8bff'], initials: 'ME' },
+};
+const avatarDefaults = () => Object.fromEntries(AVATAR_SLOTS.map((k) => [k, { data: null, zoom: 1, x: 0, y: 0 }]));
+
+const DEFAULT_STATE = {
+  version: 1,
+  frame: { w: 1080, h: 1920 },
+  topBar: { show: false, friends: 3, offset: 0 },
+  interested: { show: true },
+  author: { nickname: 'kiwi.cloud', verified: false, follow: true },
+  floating: { show: true },
+  track: { show: true, artist: 'Portiz Music', title: 'Oops!' },
+  caption: { text: 'Just vibing 😋\nmore below', placeholder: 'See more' },
+  stats: {
+    likes: 48213, comments: 1740, reposts: 9233, saves: 19200, hideLikes: false,
+    lock: { likes: false, comments: false, reposts: false, saves: false },
+  },
+  nav: { variant: 'compact', slot3: 'messages', reelsIcon: 'square', dot: true },
+  progress: { mode: 'sequence' },
+  look: { gradient: 100, font: 'inter', calib: false, calibRef: 'reels-1', calibOpacity: 50 },
+  seq: { transition: 'cut', xfade: 0.5 },
+  music: { volume: 0.8, offset: 0 },
+  avatars: avatarDefaults(),
+  export: { format: 'mp4', fps: 30, quality: 'high', bitrate: 12, audio: true, audioBitrate: 128, filename: 'reels' },
+  loop: true,
+};
+
+let state = structuredClone(DEFAULT_STATE);
+
+function sanitizeState(s) {
+  s.frame.w = clamp(Math.round(s.frame.w / 2) * 2, 240, 4096);
+  s.frame.h = clamp(Math.round(s.frame.h / 2) * 2, 240, 4096);
+  s.topBar.friends = clamp(Math.round(s.topBar.friends), 1, 3);
+  if (nickError(s.author.nickname)) s.author.nickname = DEFAULT_STATE.author.nickname;
+  for (const k of ['likes', 'comments', 'reposts', 'saves']) s.stats[k] = Math.max(0, Math.round(s.stats[k]));
+  if (!['compact', 'wide'].includes(s.nav.variant)) s.nav.variant = 'compact';
+  if (!['messages', 'create'].includes(s.nav.slot3)) s.nav.slot3 = 'messages';
+  if (!['square', 'clapper'].includes(s.nav.reelsIcon)) s.nav.reelsIcon = 'square';
+  if (!['inter', 'system'].includes(s.look.font)) s.look.font = 'inter';
+  if (!['cut', 'crossfade'].includes(s.seq.transition)) s.seq.transition = 'cut';
+  s.seq.xfade = clamp(s.seq.xfade, 0.1, 2);
+  if (![30, 60].includes(s.export.fps)) s.export.fps = 30;
+  if (!['mp4', 'webm'].includes(s.export.format)) s.export.format = 'mp4';
+  return s;
+}
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) state = sanitizeState(deepMerge(DEFAULT_STATE, JSON.parse(raw)));
+  } catch (e) {
+    console.warn('Не вдалося прочитати збережені налаштування', e);
+  }
+}
+const saveState = debounce(() => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    // Перевищено квоту: зберігаємо без зображень аватарок.
+    try {
+      const lite = structuredClone(state);
+      for (const k of AVATAR_SLOTS) lite.avatars[k].data = null;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(lite));
+    } catch (e2) { console.warn('Автозбереження недоступне', e2); }
+  }
+}, 400);
+
+// ============================== 5. Шрифти й текст ==============================
+const FONT_FAMILIES = {
+  inter: 'Inter, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif',
+  system: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif',
+};
+// [вага, розмір у pt]. Розміри Inter підібрано за шириною тексту на референсах (SF Pro трохи вужчий).
+const TYPO = {
+  inter: { nick: [700, 13.5], track: [400, 12], follow: [600, 13], caption: [400, 13.5], btn: [600, 12], label: [600, 11.5], top: [700, 22.75] },
+  system: { nick: [600, 15], track: [400, 13.5], follow: [600, 14], caption: [400, 15], btn: [600, 13.5], label: [600, 13], top: [700, 23.5] },
+};
+// Текст малюється у K разів більшим кеглем зі зворотним масштабом: верстка тексту не залежить
+// від роздільної здатності, тож прев'ю і експорт мають однакові переноси/ширини.
+const TK = 8;
+const MCTX = makeCanvas(8, 8).getContext('2d');
+const metricCache = new Map();
+const capCache = new Map();
+const segmenter = (typeof Intl !== 'undefined' && Intl.Segmenter) ? new Intl.Segmenter(undefined, { granularity: 'grapheme' }) : null;
+
+function fontStr(fam, weight, size) { return `${weight} ${(size * TK).toFixed(2)}px ${FONT_FAMILIES[fam]}`; }
+function measure(font, text) {
+  const key = font + '\u0001' + text;
+  let m = metricCache.get(key);
+  if (!m) {
+    MCTX.font = font;
+    const r = MCTX.measureText(text);
+    m = { w: r.width / TK, l: (r.actualBoundingBoxLeft || 0) / TK, r: (r.actualBoundingBoxRight ?? r.width) / TK };
+    if (metricCache.size > 4000) metricCache.clear();
+    metricCache.set(key, m);
+  }
+  return m;
+}
+function capRatio(fam, weight) {
+  const key = fam + weight;
+  let v = capCache.get(key);
+  if (v == null) {
+    MCTX.font = `${weight} 200px ${FONT_FAMILIES[fam]}`;
+    const a = MCTX.measureText('H').actualBoundingBoxAscent;
+    v = a > 0 ? a / 200 : 0.72;
+    capCache.set(key, v);
+  }
+  return v;
+}
+const visW = (m) => m.l + m.r;
+function graphemes(s) { return segmenter ? Array.from(segmenter.segment(s), (x) => x.segment) : Array.from(s); }
+// Обрізає текст під ширину (по видимих межах гліфів) із суфіксом; force — суфікс додається завжди.
+function fitText(font, text, maxW, suffix, force = false) {
+  if (!force && visW(measure(font, text)) <= maxW) return text;
+  const g = graphemes(text);
+  let lo = 0, hi = g.length;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    const cand = g.slice(0, mid).join('').trimEnd() + suffix;
+    if (visW(measure(font, cand)) <= maxW) lo = mid; else hi = mid - 1;
+  }
+  return g.slice(0, lo).join('').trimEnd() + suffix;
+}
+/** Малює текст: x — видимий лівий край (або центр), cy — центр великих літер. */
+function drawText(ctx, text, x, cy, fam, [weight, size], opt = {}) {
+  const font = fontStr(fam, weight, size);
+  const m = measure(font, text);
+  const align = opt.align || 'left';
+  const ox = align === 'left' ? x + m.l : x;
+  ctx.save();
+  ctx.translate(ox, cy + (capRatio(fam, weight) * size) / 2);
+  ctx.scale(1 / TK, 1 / TK);
+  ctx.font = font;
+  ctx.textAlign = align;
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = opt.color || '#fff';
+  ctx.fillText(text, 0, 0);
+  ctx.restore();
+  return m;
+}
+function clearTextCaches() { metricCache.clear(); capCache.clear(); defaultAvatarCache.clear(); }
+
+async function ensureFonts(st = state) {
+  if (!document.fonts) return;
+  const sample = [st.author.nickname, st.caption.text, st.caption.placeholder, st.track.artist, st.track.title,
+    'Reels Friends Follow Not interested Interested Likes See more 0123456789,.KMB·…'].join(' ');
+  try {
+    await Promise.all(['400', '600', '700'].map((w) => document.fonts.load(`${w} 16px Inter`, sample)));
+    await document.fonts.ready;
+  } catch (e) { /* офлайн — буде запасний шрифт */ }
+  clearTextCaches();
+}
+
+// ============================== 6. Іконки (Path2D) ==============================
+function rrect(p, x, y, w, h, r) {
+  r = Math.max(0, Math.min(r, w / 2, h / 2));
+  p.moveTo(x + r, y);
+  p.lineTo(x + w - r, y); p.arcTo(x + w, y, x + w, y + r, r);
+  p.lineTo(x + w, y + h - r); p.arcTo(x + w, y + h, x + w - r, y + h, r);
+  p.lineTo(x + r, y + h); p.arcTo(x, y + h, x, y + h - r, r);
+  p.lineTo(x, y + r); p.arcTo(x, y, x + r, y, r);
+  p.closePath();
+}
+function rpoly(p, pts, radii) {
+  const n = pts.length;
+  const r = (i) => (Array.isArray(radii) ? radii[i] : radii);
+  p.moveTo((pts[n - 1][0] + pts[0][0]) / 2, (pts[n - 1][1] + pts[0][1]) / 2);
+  for (let i = 0; i < n; i++) {
+    const c = pts[i], nx = pts[(i + 1) % n];
+    p.arcTo(c[0], c[1], nx[0], nx[1], r(i));
+  }
+  p.closePath();
+}
+function poly(p, pts) {
+  p.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) p.lineTo(pts[i][0], pts[i][1]);
+  p.closePath();
+}
+
+const ICON = (() => {
+  const D = (d, cx = 0, cy = 0, k = 1) => ({ path: typeof d === 'string' ? new Path2D(d) : d, cx, cy, k });
+  const HEART = 'M0 10.48C-1.6 9.3-11.93 2.6-11.93-3.7C-11.93-7.9-9.1-10.48-6-10.48C-3.3-10.48-1.3-8.6 0-6.2C1.3-8.6 3.3-10.48 6-10.48C9.1-10.48 11.93-7.9 11.93-3.7C11.93 2.6 1.6 9.3 0 10.48Z';
+  const share = new Path2D();
+  rpoly(share, [[-12.6, -9.8], [12.1, -9.8], [0.3, 11.6], [-4.3, -0.5]], [1.6, 1.6, 1.4, 0.6]);
+  share.moveTo(-4.3, -0.5); share.lineTo(5.8, -5.8);
+
+  const create = new Path2D();
+  rrect(create, -10.1, -10.1, 20.2, 20.2, 5.4);
+  create.moveTo(-5, 0); create.lineTo(5, 0); create.moveTo(0, -5); create.lineTo(0, 5);
+
+  // Reels: заповнений заокруглений квадрат із «вирізаним» Play (evenodd)
+  const reelsSquare = new Path2D();
+  rrect(reelsSquare, -10.95, -10.95, 21.9, 21.9, 6.3);
+  rpoly(reelsSquare, [[-3.7, -4.9], [5.3, 0], [-3.7, 4.9]], 1.15);
+
+  // Reels: хлопавка (як на reels-1). Задано в «широкому» масштабі.
+  const c = 1 / 0.836;
+  const sc = (pts) => pts.map(([x, y]) => [x * c, y * c]);
+  const clapOuter = new Path2D();
+  rrect(clapOuter, -9.2 * c, -9.3 * c, 18.4 * c, 18.9 * c, 4.2 * c);
+  const clapFill = new Path2D();
+  for (const pts of [
+    [[-9.2, -9.3], [-4.85, -9.3], [-2.85, -5.0], [-9.2, -5.0]],
+    [[-3.6, -9.3], [1.15, -9.3], [3.15, -5.0], [-1.6, -5.0]],
+    [[2.4, -9.3], [9.2, -9.3], [9.2, -5.0], [4.4, -5.0]],
+  ]) poly(clapFill, sc(pts));
+  clapFill.rect(-9.2 * c, -3.6 * c, 18.4 * c, 13.3 * c);
+  rpoly(clapFill, sc([[-2.1, -0.6], [4.3, 2.55], [-2.1, 5.7]]), 0.8 * c);
+
+  // Нотка (♫) для рядка треку
+  const note = new Path2D();
+  poly(note, [[-3.0, -3.95], [5.2, -5.6], [5.2, -3.7], [-3.0, -2.05]]);
+  note.rect(-3.0, -3.9, 1.1, 7.4);
+  note.rect(4.1, -5.2, 1.1, 7.6);
+  note.ellipse(-3.75, 3.55, 2.05, 1.65, -0.35, 0, TAU);
+  note.ellipse(3.35, 2.3, 2.05, 1.65, -0.35, 0, TAU);
+
+  return {
+    heart: D(HEART),
+    heartFill: new Path2D(HEART),
+    comment: D('M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z', 12, 12, 1.0925),
+    repost: D('M-9.875 2V-5.75Q-9.875-9.25-6.375-9.25H4.95M0.65-13.3L4.95-9.25L0.65-5.2M9.875-2V5.75Q9.875 9.25 6.375 9.25H-4.95M-0.65 13.3L-4.95 9.25L-0.65 5.2'),
+    share: D(share),
+    save: D('M20 21L12 13.44L4 21V3H20Z', 12, 12, 1.137),
+    menu: D('M-8.75-4.05H8.75M-8.75 4.05H2.65'),
+    home: D('M22 23h-6.001a1 1 0 0 1-1-1v-5.455a2.997 2.997 0 1 0-5.993 0V22a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V11.543a1.002 1.002 0 0 1 .31-.724l10-9.543a1.001 1.001 0 0 1 1.38 0l10 9.543a1.002 1.002 0 0 1 .31.724V22a1 1 0 0 1-1 1Z', 12, 12, 0.898),
+    search: D('M19 10.5A8.5 8.5 0 1 1 10.5 2a8.5 8.5 0 0 1 8.5 8.5ZM16.511 16.511L22 22', 12, 12, 0.9875),
+    plane: D('M11.698 20.334L22 3.001H2L9.218 10.084ZM22 3.001L9.218 10.084', 12, 11.667, 1.015),
+    create: D(create),
+    x: D('M-3.98-3.98L3.98 3.98M-3.98 3.98L3.98-3.98'),
+    check: D('M-4.57-0.15L-1.52 3L4.58-3.05'),
+    plus: D('M-9.15 0H9.15M0-9.15V9.15'),
+    reelsSquare, clapOuter, clapFill, note,
+  };
+})();
+
+function strokeIcon(ctx, def, x, y, lw, scale = 1, color = '#fff') {
+  const k = def.k * scale;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(k, k);
+  if (def.cx || def.cy) ctx.translate(-def.cx, -def.cy);
+  ctx.lineWidth = lw / k;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = color;
+  ctx.stroke(def.path);
+  ctx.restore();
+}
+
+// ============================== 7. Аватарки ==============================
+const avatarImages = {};              // slot -> {img, w, h}
+const defaultAvatarCache = new Map(); // key -> canvas
+
+function authorInitials() {
+  const t = (state.author.nickname || 'u').split(/[._0-9]+/).filter(Boolean);
+  const a = (t[0] || 'u')[0] || 'u';
+  const b = t[1] ? t[1][0] : (t[0] || '').slice(1, 2);
+  return (a + (b || '')).toUpperCase();
+}
+function defaultAvatar(slot) {
+  const meta = AVATAR_META[slot];
+  const ini = slot === 'author' ? authorInitials() : meta.initials;
+  const key = slot + '|' + ini;
+  let c = defaultAvatarCache.get(key);
+  if (!c) {
+    c = makeCanvas(256, 256);
+    const x = c.getContext('2d');
+    const g = x.createLinearGradient(0, 0, 256, 256);
+    g.addColorStop(0, meta.colors[0]);
+    g.addColorStop(1, meta.colors[1]);
+    x.fillStyle = g;
+    x.fillRect(0, 0, 256, 256);
+    const hl = x.createRadialGradient(80, 60, 10, 80, 60, 200);
+    hl.addColorStop(0, 'rgba(255,255,255,.28)');
+    hl.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = hl;
+    x.fillRect(0, 0, 256, 256);
+    x.fillStyle = '#fff';
+    x.font = `600 ${ini.length > 1 ? 98 : 120}px ${FONT_FAMILIES.inter}`;
+    x.textAlign = 'center';
+    x.textBaseline = 'middle';
+    x.shadowColor = 'rgba(0,0,0,.18)';
+    x.shadowBlur = 8;
+    x.fillText(ini, 128, 136);
+    defaultAvatarCache.set(key, c);
+  }
+  return { img: c, w: 256, h: 256 };
+}
+function avatarSource(slot) { return avatarImages[slot] || defaultAvatar(slot); }
+
+function drawAvatar(ctx, slot, cx, cy, d) {
+  const a = state.avatars[slot] || {};
+  const src = avatarSource(slot);
+  const r = d / 2;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, TAU);
+  ctx.clip();
+  const base = Math.max(d / src.w, d / src.h) * clamp(a.zoom || 1, 1, 4);
+  const dw = src.w * base, dh = src.h * base;
+  const x = cx - dw / 2 - clamp(a.x || 0, -1, 1) * (dw - d) / 2;
+  const y = cy - dh / 2 - clamp(a.y || 0, -1, 1) * (dh - d) / 2;
+  ctx.drawImage(src.img, x, y, dw, dh);
+  ctx.restore();
+}
+
+async function loadAvatarImage(slot) {
+  const data = state.avatars[slot]?.data;
+  if (!data) { delete avatarImages[slot]; return; }
+  const img = new Image();
+  img.src = data;
+  try {
+    await img.decode();
+    avatarImages[slot] = { img, w: img.naturalWidth, h: img.naturalHeight };
+  } catch (e) {
+    delete avatarImages[slot];
+  }
+}
+async function loadAllAvatars() { await Promise.all(AVATAR_SLOTS.map(loadAvatarImage)); }
+
+async function fileToAvatarData(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    const max = 512;
+    const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.max(1, Math.round(img.naturalWidth * k)), h = Math.max(1, Math.round(img.naturalHeight * k));
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    c.getContext('2d').drawImage(img, 0, 0, w, h);
+    return c.toDataURL('image/jpeg', 0.88);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+// ======================= 8. Розмиття та медіа-шари =======================
+// Підтримка ctx.filter перевіряється на обох типах полотен, щоб прев'ю і експорт рендерились однаково.
+const FILTER_OK = (() => {
+  const test = (c) => {
+    try {
+      const x = c.getContext('2d');
+      if (!('filter' in x)) return false;
+      x.filter = 'blur(2px)';
+      x.fillStyle = '#fff';
+      x.fillRect(3, 3, 2, 2);
+      x.filter = 'none';
+      return x.getImageData(0, 0, 1, 1).data[3] > 0 || x.getImageData(1, 1, 1, 1).data[3] > 0;
+    } catch (e) { return false; }
+  };
+  const a = document.createElement('canvas');
+  a.width = a.height = 8;
+  const okDom = test(a);
+  const okOff = typeof OffscreenCanvas === 'undefined' ? okDom : test(new OffscreenCanvas(8, 8));
+  return okDom && okOff;
+})();
+const SCRATCH = {};
+function scratch(name, w, h) {
+  let c = SCRATCH[name];
+  if (!c) c = SCRATCH[name] = makeCanvas(w, h);
+  if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+  return c;
+}
+
+function drawMediaLayer(ctx, L, W, H) {
+  if (!L.src || !L.sw || !L.sh) return;
+  ctx.save();
+  ctx.globalAlpha = clamp(L.alpha ?? 1, 0, 1);
+  if (L.fit === 'contain') {
+    // Розмитий фон із того ж кадру
+    const f = FILTER_OK ? 10 : 24;
+    const bw = Math.max(2, Math.round(W / f)), bh = Math.max(2, Math.round(H / f));
+    const b = scratch('contain', bw, bh);
+    const bx = b.getContext('2d');
+    bx.setTransform(1, 0, 0, 1, 0, 0);
+    bx.globalCompositeOperation = 'copy';
+    bx.filter = FILTER_OK ? `blur(${(14 * (W / 375) / f).toFixed(2)}px)` : 'none';
+    const kc = Math.max(bw / L.sw, bh / L.sh) * 1.15;
+    bx.drawImage(L.src, (bw - L.sw * kc) / 2, (bh - L.sh * kc) / 2, L.sw * kc, L.sh * kc);
+    bx.filter = 'none';
+    bx.globalCompositeOperation = 'source-over';
+    ctx.drawImage(b, 0, 0, bw, bh, 0, 0, W, H);
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    ctx.fillRect(0, 0, W, H);
+    const k = Math.min(W / L.sw, H / L.sh);
+    ctx.drawImage(L.src, (W - L.sw * k) / 2, (H - L.sh * k) / 2, L.sw * k, L.sh * k);
+  } else {
+    const k = Math.max(W / L.sw, H / L.sh);
+    ctx.drawImage(L.src, (W - L.sw * k) / 2, (H - L.sh * k) / 2, L.sw * k, L.sh * k);
+  }
+  ctx.restore();
+}
+function drawEmptyBackdrop(ctx, W, H) {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#1d1d1f');
+  g.addColorStop(1, '#141414');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+}
+function drawShades(ctx, W, H, k) {
+  if (k <= 0) return;
+  const y0 = H * 0.65;
+  let g = ctx.createLinearGradient(0, y0, 0, H);
+  g.addColorStop(0, 'rgba(0,0,0,0)');
+  g.addColorStop(0.5, `rgba(0,0,0,${(0.4 * k * 0.55).toFixed(4)})`);
+  g.addColorStop(1, `rgba(0,0,0,${(0.4 * k).toFixed(4)})`);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, y0, W, H - y0);
+  const y1 = H * 0.15;
+  g = ctx.createLinearGradient(0, 0, 0, y1);
+  g.addColorStop(0, `rgba(0,0,0,${(0.25 * k).toFixed(4)})`);
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, y1);
+}
+// Зменшена розмита копія кадру — фон для «скляних» елементів (навігація, кнопки Interested).
+function makeSnapshot(ctx, W, H, s) {
+  const f = FILTER_OK ? 8 : 20;
+  const w = Math.max(2, Math.round(W / f)), h = Math.max(2, Math.round(H / f));
+  const c = scratch('snap', w, h);
+  const x = c.getContext('2d');
+  x.setTransform(1, 0, 0, 1, 0, 0);
+  x.globalCompositeOperation = 'copy';
+  x.filter = FILTER_OK ? `blur(${(7 * s / f).toFixed(2)}px)` : 'none';
+  x.drawImage(ctx.canvas, 0, 0, W, H, 0, 0, w, h);
+  x.filter = 'none';
+  x.globalCompositeOperation = 'source-over';
+  return c;
+}
+
+// ============================== 9. Таймлайн ==============================
+let clips = [];          // кліпи живуть лише в пам'яті сесії
+let music = null;        // {file, url, name, duration}
+let tlCache = null;
+
+function clipLen(c) { return c.type === 'image' ? Math.max(0.1, c.photoDur) : Math.max(0.1, c.trimOut - c.trimIn); }
+function invalidateTimeline() { tlCache = null; }
+function getTimeline() {
+  if (tlCache) return tlCache;
+  const lens = clips.map(clipLen);
+  let xf = state.seq.transition === 'crossfade' && clips.length > 1 ? state.seq.xfade : 0;
+  if (xf > 0) xf = Math.min(xf, ...lens.map((l) => l / 2));
+  const items = [];
+  let t = 0;
+  clips.forEach((clip, i) => {
+    const start = i === 0 ? 0 : t - xf;
+    items.push({ clip, index: i, start, len: lens[i], end: start + lens[i] });
+    t = start + lens[i];
+  });
+  tlCache = { items, xf, total: t };
+  return tlCache;
+}
+/** Активні кліпи в момент t (знизу догори) з прозорістю і гучністю кросфейду. */
+function activeItems(tl, t) {
+  const out = [];
+  if (!tl.items.length) return out;
+  const tt = clamp(t, 0, Math.max(0, tl.total - 1e-6));
+  const n = tl.items.length;
+  for (const it of tl.items) {
+    if (tt < it.start || tt >= it.end) continue;
+    const local = tt - it.start;
+    let fadeIn = 1, fadeOut = 1;
+    if (tl.xf > 0) {
+      if (it.index > 0) fadeIn = clamp(local / tl.xf, 0, 1);
+      if (it.index < n - 1) fadeOut = clamp((it.end - tt) / tl.xf, 0, 1);
+    }
+    out.push({ item: it, local, alpha: fadeIn, gain: fadeIn * fadeOut });
+  }
+  return out;
+}
+function clipProgressAt(tl, t) {
+  const act = activeItems(tl, t);
+  if (!act.length) return 0;
+  const a = act[act.length - 1];
+  return clamp(a.local / a.item.len, 0, 1);
+}
+function displayTotal() { return getTimeline().total || EMPTY_DURATION; }
+const EMPTY_DURATION = 10;
+
+// ============================ 10. Рендерер кадру ============================
+const BASE_W = 375;      // дизайн-ширина кадру в pt
+const SHIFT = 50;        // зсув без панелі Interested
+// Положення (pt). Нижні елементи — відстань від низу кадру (fb), верхні — від верху.
+const LAYOUT = {
+  right: { cx: 344.6, lw: 2.15, heart: 514.6, likes: 484.6, comment: 444, comments: 414.4, repost: 371, reposts: 337.4, share: 296, save: 248.5, saves: 219.5, menu: 178.9 },
+  author: { cx: 34.1, fb: 210, d: 36.5, nickX: 60.9, nickUp: 10.2, trackDown: 8.4, noteCx: 66.9, trackX: 77.1, badgeGap: 6.6, badgeD: 10.85, followGap: 14.5, followPad: 9.6, followH: 25.2, followR: 7.5, rowLimit: 318 },
+  floating: { cx: 37.8, up: 56, d: 44, heartDx: 18, heartDy: 17.2, heartW: 16.2 },
+  caption: { x: 16.6, fb: 172.3, maxW: 280 },
+  interested: { fb: 130, h: 32, r: 8, left: [16, 165.5], right: [193.5, 165.5], iconGap: 8.1, groupShift: -3 },
+  progress: { fb: 94, x0: 16, x1: 359.4, h: 2 },
+  nav: { fb: 47, cx: 187.5 },
+  top: { tall: 78, short: 44, plusX: 28, reelsX: 80.4, friendsX: 158.5, avGap: 4.9, avD: 19.9, avStep: 15.65, ring: 1.5 },
+};
+const NAV = {
+  compact: { w: 279, h: 50.5, step: 52.2, k: 0.836, lw: 1.6, pillW: 60, pillH: 41, av: 20.3 },
+  wide: { w: 331.5, h: 59.5, step: 62.2, k: 1, lw: 2.15, pillW: 71, pillH: 40.5, av: 24.8 },
+};
+
+function shadowOn(ctx, R) {
+  ctx.shadowColor = 'rgba(0,0,0,0.3)';
+  ctx.shadowBlur = 2 * R.s;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+}
+function shadowOff(ctx) {
+  ctx.shadowColor = 'rgba(0,0,0,0)';
+  ctx.shadowBlur = 0;
+}
+
+/**
+ * Малює повний кадр (медіа + інтерфейс Reels).
+ * @param ctx  2D-контекст (HTMLCanvas або OffscreenCanvas)
+ * @param t    час на таймлайні, с
+ * @param st   стан налаштувань
+ * @param W,H  розмір кадру в пікселях
+ * @param media {layers:[{src,sw,sh,fit,alpha}], total, clipProgress}
+ */
+function renderFrame(ctx, t, st, W, H, media = {}) {
+  const s = W / BASE_W;
+  const Hp = H / s;
+  const fam = st.look.font === 'system' ? 'system' : 'inter';
+  const R = { s, Hp, W, H, fam, ty: TYPO[fam], st };
+  const sh = st.interested.show ? 0 : SHIFT;
+  const Y = (fb) => Hp - fb;
+
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+  if ('filter' in ctx) ctx.filter = 'none';
+  shadowOff(ctx);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+
+  const layers = media.layers || [];
+  if (!layers.length) drawEmptyBackdrop(ctx, W, H);
+  for (const L of layers) drawMediaLayer(ctx, L, W, H);
+  drawShades(ctx, W, H, clamp(st.look.gradient, 0, 100) / 100);
+  const snap = makeSnapshot(ctx, W, H, s);
+
+  ctx.setTransform(s, 0, 0, s, 0, 0);
+  if (st.topBar.show) drawTopBar(ctx, R);
+  drawRightPanel(ctx, R, Y, sh);
+  if (st.floating.show) drawFloating(ctx, R, Y, sh, t);
+  drawAuthor(ctx, R, Y, sh);
+  drawCaption(ctx, R, Y, sh);
+  if (st.interested.show) drawInterested(ctx, R, Y, snap);
+  drawProgress(ctx, R, Y, t, media);
+  drawNav(ctx, R, Y, snap);
+  ctx.restore();
+}
+
+function drawTopBar(ctx, R) {
+  const { st, fam } = R;
+  const T = LAYOUT.top;
+  const cy = ((R.H / R.W) >= 2.0 ? T.tall : T.short) + st.topBar.offset;
+  shadowOn(ctx, R);
+  strokeIcon(ctx, ICON.plus, T.plusX, cy, 2);
+  drawText(ctx, 'Reels', T.reelsX, cy, fam, R.ty.top);
+  const fm = drawText(ctx, 'Friends', T.friendsX, cy, fam, R.ty.top, { color: 'rgba(255,255,255,0.5)' });
+  shadowOff(ctx);
+  const n = clamp(st.topBar.friends, 1, 3);
+  const first = T.friendsX + visW(fm) + T.avGap + T.avD / 2;
+  const order = n === 3 ? [0, 2, 1] : n === 2 ? [0, 1] : [0];
+  for (const i of order) {
+    const cx = first + i * T.avStep;
+    ctx.beginPath();
+    ctx.arc(cx, cy, T.avD / 2 + T.ring, 0, TAU);
+    ctx.fillStyle = '#000';
+    ctx.fill();
+    drawAvatar(ctx, 'friend' + (i + 1), cx, cy, T.avD);
+  }
+}
+
+function drawRightPanel(ctx, R, Y, sh) {
+  const P = LAYOUT.right, S = R.st.stats;
+  const label = (txt, fb) => drawText(ctx, txt, P.cx, Y(fb - sh), R.fam, R.ty.label, { align: 'center' });
+  shadowOn(ctx, R);
+  strokeIcon(ctx, ICON.heart, P.cx, Y(P.heart - sh), P.lw);
+  label(S.hideLikes ? 'Likes' : formatCount(S.likes), P.likes);
+  strokeIcon(ctx, ICON.comment, P.cx, Y(P.comment - sh), P.lw);
+  label(formatCount(S.comments), P.comments);
+  strokeIcon(ctx, ICON.repost, P.cx, Y(P.repost - sh), P.lw);
+  label(formatCount(S.reposts), P.reposts);
+  strokeIcon(ctx, ICON.share, P.cx, Y(P.share - sh), P.lw);
+  strokeIcon(ctx, ICON.save, P.cx, Y(P.save - sh), P.lw);
+  label(formatCount(S.saves), P.saves);
+  strokeIcon(ctx, ICON.menu, P.cx, Y(P.menu - sh), 2);
+  shadowOff(ctx);
+}
+
+function drawHeartBadge(ctx, R, cx, cy, w) {
+  const k = w / 23.86;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(k, k);
+  const g = ctx.createLinearGradient(0, -10.5, 0, 10.5);
+  g.addColorStop(0, '#FF5A8A');
+  g.addColorStop(1, '#FF2D55');
+  ctx.shadowColor = 'rgba(0,0,0,0.3)';
+  ctx.shadowBlur = 2 * R.s;
+  ctx.fillStyle = g;
+  ctx.fill(ICON.heartFill);
+  shadowOff(ctx);
+  const hl = ctx.createRadialGradient(-5.5, -6, 0.5, -5.5, -6, 6);
+  hl.addColorStop(0, 'rgba(255,255,255,0.35)');
+  hl.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = hl;
+  ctx.fill(ICON.heartFill);
+  ctx.restore();
+}
+
+function drawFloating(ctx, R, Y, sh, t) {
+  const F = LAYOUT.floating;
+  // «Плавання на місці» — лише від t
+  const cx = F.cx + 1.5 * Math.sin(TAU * t / 4.3);
+  const cy = Y(LAYOUT.author.fb + F.up - sh) + 3 * Math.sin(TAU * t / 3);
+  drawAvatar(ctx, 'floating', cx, cy, F.d);
+  drawHeartBadge(ctx, R, cx + F.heartDx, cy + F.heartDy, F.heartW);
+}
+
+function drawVerified(ctx, cx, cy, d) {
+  const N = 16, ro = d / 2, ri = ro * 0.84;
+  const p = new Path2D();
+  for (let i = 0; i < N * 2; i++) {
+    const a = (i / (N * 2)) * TAU - Math.PI / 2;
+    const r = i % 2 ? ri : ro;
+    const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
+    if (i) p.lineTo(x, y); else p.moveTo(x, y);
+  }
+  p.closePath();
+  ctx.fillStyle = '#fff';
+  ctx.strokeStyle = '#fff';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = d * 0.06;
+  ctx.fill(p);
+  ctx.stroke(p);
+  const k = d / 12.2;
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0)';
+  ctx.beginPath();
+  ctx.moveTo(cx - 2.5 * k, cy + 0.1 * k);
+  ctx.lineTo(cx - 0.85 * k, cy + 1.75 * k);
+  ctx.lineTo(cx + 2.6 * k, cy - 1.7 * k);
+  ctx.strokeStyle = 'rgba(0,0,0,0.92)';
+  ctx.lineWidth = 1.3 * k;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawAuthor(ctx, R, Y, sh) {
+  const A = LAYOUT.author, st = R.st, fam = R.fam;
+  const cy = Y(A.fb - sh);
+  drawAvatar(ctx, 'author', A.cx, cy, A.d);
+
+  const trackOn = st.track.show;
+  const nickCy = trackOn ? cy - A.nickUp : cy;
+  const trackCy = cy + A.trackDown;
+  const fontN = fontStr(fam, ...R.ty.nick);
+  const fontT = fontStr(fam, ...R.ty.track);
+  const fontF = fontStr(fam, ...R.ty.follow);
+  const followOn = st.author.follow;
+  const followW = visW(measure(fontF, 'Follow')) + 2 * A.followPad;
+  const rowMax = followOn ? A.rowLimit - A.followGap - followW : A.rowLimit;
+
+  const badgeW = st.author.verified ? A.badgeGap + A.badgeD : 0;
+  const nick = fitText(fontN, st.author.nickname || 'username', rowMax - A.nickX - badgeW, '…');
+  let rowRight = A.nickX + visW(measure(fontN, nick)) + badgeW;
+  let track = '';
+  if (trackOn) {
+    track = [st.track.artist, st.track.title].map((x) => (x || '').trim()).filter(Boolean).join(' · ') || 'Original audio';
+    track = fitText(fontT, track, rowMax - A.trackX, '…');
+    rowRight = Math.max(rowRight, A.trackX + visW(measure(fontT, track)));
+  }
+
+  shadowOn(ctx, R);
+  const nm = drawText(ctx, nick, A.nickX, nickCy, fam, R.ty.nick);
+  if (st.author.verified) drawVerified(ctx, A.nickX + visW(nm) + A.badgeGap + A.badgeD / 2, nickCy, A.badgeD);
+  if (trackOn) {
+    ctx.save();
+    ctx.translate(A.noteCx, trackCy);
+    ctx.fillStyle = 'rgba(255,255,255,0.72)';
+    ctx.fill(ICON.note);
+    ctx.restore();
+    drawText(ctx, track, A.trackX, trackCy, fam, R.ty.track, { color: 'rgba(255,255,255,0.92)' });
+  }
+  if (followOn) {
+    const fx = rowRight + A.followGap;
+    const p = new Path2D();
+    rrect(p, fx + 0.75, cy - A.followH / 2 + 0.75, followW - 1.5, A.followH - 1.5, A.followR);
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+    ctx.stroke(p);
+    drawText(ctx, 'Follow', fx + A.followPad, cy, fam, R.ty.follow);
+  }
+  shadowOff(ctx);
+}
+
+function drawCaption(ctx, R, Y, sh) {
+  const C = LAYOUT.caption, st = R.st;
+  const font = fontStr(R.fam, ...R.ty.caption);
+  const lines = (st.caption.text || '').split(/\r?\n/);
+  const firstIdx = lines.findIndex((l) => l.trim());
+  let text;
+  if (firstIdx < 0) {
+    text = fitText(font, (st.caption.placeholder || '').trim() || 'See more', C.maxW, '…');
+  } else {
+    const first = lines[firstIdx].trim();
+    const more = lines.slice(firstIdx + 1).some((l) => l.trim());
+    text = fitText(font, first, C.maxW, ' ...', more);
+  }
+  shadowOn(ctx, R);
+  drawText(ctx, text, C.x, Y(C.fb - sh), R.fam, R.ty.caption);
+  shadowOff(ctx);
+}
+
+function glassFill(ctx, R, snap, path, fills) {
+  ctx.save();
+  ctx.clip(path);
+  ctx.drawImage(snap, 0, 0, snap.width, snap.height, 0, 0, BASE_W, R.Hp);
+  for (const f of fills) { ctx.fillStyle = f; ctx.fill(path); }
+  ctx.restore();
+}
+
+function drawInterested(ctx, R, Y, snap) {
+  const I = LAYOUT.interested;
+  const cy = Y(I.fb);
+  const font = fontStr(R.fam, ...R.ty.btn);
+  for (const [x, w, kind] of [[...I.left, 'no'], [...I.right, 'yes']]) {
+    const p = new Path2D();
+    rrect(p, x, cy - I.h / 2, w, I.h, I.r);
+    glassFill(ctx, R, snap, p, ['rgba(255,255,255,0.17)']);
+    const label = kind === 'no' ? 'Not interested' : 'Interested';
+    const iconW = kind === 'no' ? 9.66 : 10.85;
+    const group = iconW + I.iconGap + visW(measure(font, label));
+    const left = x + w / 2 - group / 2 + I.groupShift;
+    shadowOn(ctx, R);
+    strokeIcon(ctx, kind === 'no' ? ICON.x : ICON.check, left + iconW / 2, cy, 1.7);
+    drawText(ctx, label, left + iconW + I.iconGap, cy, R.fam, R.ty.btn);
+    shadowOff(ctx);
+  }
+}
+
+function drawProgress(ctx, R, Y, t, media) {
+  const P = LAYOUT.progress;
+  const y = Y(P.fb) - P.h / 2;
+  const total = media.total || 0;
+  let p = R.st.progress.mode === 'clip' ? (media.clipProgress || 0) : (total > 0 ? t / total : 0);
+  p = clamp(p, 0, 1);
+  const track = new Path2D();
+  rrect(track, P.x0, y, P.x1 - P.x0, P.h, P.h / 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.27)';
+  ctx.fill(track);
+  if (p > 0) {
+    const fill = new Path2D();
+    rrect(fill, P.x0, y, Math.max(P.h, (P.x1 - P.x0) * p), P.h, P.h / 2);
+    ctx.fillStyle = '#fff';
+    ctx.fill(fill);
+  }
+}
+
+function drawNav(ctx, R, Y, snap) {
+  const st = R.st;
+  const v = NAV[st.nav.variant] || NAV.compact;
+  const cx = LAYOUT.nav.cx, cy = Y(LAYOUT.nav.fb);
+  const x = cx - v.w / 2, y = cy - v.h / 2;
+  const cap = new Path2D();
+  rrect(cap, x, y, v.w, v.h, v.h / 2);
+  glassFill(ctx, R, snap, cap, ['rgba(30,30,30,0.6)', 'rgba(255,255,255,0.08)']);
+  // Тонка світла обводка «скла» (яскравіша зверху)
+  const rim = ctx.createLinearGradient(0, y, 0, y + v.h);
+  rim.addColorStop(0, 'rgba(255,255,255,0.42)');
+  rim.addColorStop(0.2, 'rgba(255,255,255,0.15)');
+  rim.addColorStop(0.8, 'rgba(255,255,255,0.12)');
+  rim.addColorStop(1, 'rgba(255,255,255,0.3)');
+  const rimPath = new Path2D();
+  rrect(rimPath, x + 0.45, y + 0.45, v.w - 0.9, v.h - 0.9, (v.h - 0.9) / 2);
+  ctx.lineWidth = 0.9;
+  ctx.strokeStyle = rim;
+  ctx.stroke(rimPath);
+
+  const xs = [-2, -1, 0, 1, 2].map((i) => cx + i * v.step);
+  const pill = new Path2D();
+  rrect(pill, xs[1] - v.pillW / 2, cy - v.pillH / 2, v.pillW, v.pillH, v.pillH / 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.16)';
+  ctx.fill(pill);
+
+  shadowOn(ctx, R);
+  strokeIcon(ctx, ICON.home, xs[0], cy, v.lw, v.k);
+  // Reels
+  ctx.save();
+  ctx.translate(xs[1], cy);
+  ctx.scale(v.k, v.k);
+  ctx.fillStyle = '#fff';
+  if (st.nav.reelsIcon === 'clapper') {
+    ctx.save();
+    ctx.clip(ICON.clapOuter);
+    ctx.fill(ICON.clapFill, 'evenodd');
+    ctx.restore();
+  } else {
+    ctx.fill(ICON.reelsSquare, 'evenodd');
+  }
+  ctx.restore();
+  if (st.nav.slot3 === 'create') {
+    strokeIcon(ctx, ICON.create, xs[2], cy, v.lw, v.k);
+  } else {
+    strokeIcon(ctx, ICON.plane, xs[2], cy, v.lw, v.k);
+    if (st.nav.dot) {
+      shadowOff(ctx);
+      ctx.beginPath();
+      ctx.arc(xs[2] + 9 * v.k, cy + 7.5 * v.k, 3, 0, TAU);
+      ctx.fillStyle = '#FF3040';
+      ctx.fill();
+      shadowOn(ctx, R);
+    }
+  }
+  strokeIcon(ctx, ICON.search, xs[3], cy, v.lw, v.k);
+  shadowOff(ctx);
+  drawAvatar(ctx, 'user', xs[4], cy, v.av);
+}
+
+// ============================== 11. Плеєр ==============================
+// Відтворює послідовність через <video>/<audio>; звук іде через WebAudio (гучність, кросфейд).
+class Player {
+  constructor({ getAudio }) {
+    this.getAudio = getAudio;   // () => {ctx, out} | null
+    this.els = new Map();       // clipId -> {v, url, node, gain}
+    this.musicEl = null;
+    this.onFrame = () => {};
+  }
+  audio() { return this.getAudio(); }
+  el(clip) {
+    let e = this.els.get(clip.id);
+    if (e && e.url !== clip.url) { this.dropEl(clip.id); e = null; }
+    if (!e) {
+      const v = document.createElement('video');
+      v.playsInline = true;
+      v.preload = 'auto';
+      v.muted = true;
+      v.src = clip.url;
+      e = { v, url: clip.url, node: null, gain: null };
+      v.addEventListener('seeked', () => this.onFrame());
+      v.addEventListener('loadeddata', () => this.onFrame());
+      this.els.set(clip.id, e);
+    }
+    this.connect(e, e.v);
+    return e;
+  }
+  connect(e, mediaEl) {
+    const A = this.audio();
+    if (!A || e.node) return;
+    try {
+      e.node = A.ctx.createMediaElementSource(mediaEl);
+      e.gain = A.ctx.createGain();
+      e.gain.gain.value = 0;
+      e.node.connect(e.gain).connect(A.out);
+      mediaEl.muted = false;
+    } catch (err) { console.warn('WebAudio недоступний для елемента', err); }
+  }
+  dropEl(id) {
+    const e = this.els.get(id);
+    if (!e) return;
+    try { e.v.pause(); } catch (_) {}
+    try { e.node?.disconnect(); e.gain?.disconnect(); } catch (_) {}
+    e.v.removeAttribute('src');
+    e.v.load();
+    this.els.delete(id);
+  }
+  prune() {
+    const ids = new Set(clips.map((c) => c.id));
+    for (const id of [...this.els.keys()]) if (!ids.has(id)) this.dropEl(id);
+    if (this.musicEl && (!music || this.musicEl.url !== music.url)) {
+      const m = this.musicEl;
+      try { m.a.pause(); m.node?.disconnect(); m.gain?.disconnect(); } catch (_) {}
+      m.a.removeAttribute('src');
+      m.a.load();
+      this.musicEl = null;
+    }
+  }
+  music() {
+    if (!music) return null;
+    if (!this.musicEl) {
+      const a = document.createElement('audio');
+      a.preload = 'auto';
+      a.muted = true;
+      a.src = music.url;
+      this.musicEl = { a, url: music.url, node: null, gain: null };
+    }
+    this.connect(this.musicEl, this.musicEl.a);
+    return this.musicEl;
+  }
+  /** Розблоковує відтворення зі звуком (викликати в обробнику кліку). */
+  unlock() {
+    for (const c of clips) if (c.type === 'video') {
+      const e = this.el(c);
+      if (e.v.paused) e.v.play().then(() => { if (!e.active) e.v.pause(); }).catch(() => {});
+    }
+    const m = this.music();
+    if (m && m.a.paused) m.a.play().then(() => { if (!m.active) m.a.pause(); }).catch(() => {});
+  }
+  setGain(e, g) {
+    const A = this.audio();
+    if (!e.gain || !A || Math.abs((e.lastGain ?? -1) - g) < 1e-4) return;
+    e.lastGain = g;
+    e.gain.gain.setTargetAtTime(g, A.ctx.currentTime, 0.012);
+  }
+  seekEl(m, target) {
+    if (Math.abs(m.currentTime - target) < 0.004) return;
+    try { m.currentTime = target; } catch (_) {}
+  }
+  update(tl, t, playing) {
+    const act = activeItems(tl, t);
+    for (const it of tl.items) {
+      const c = it.clip;
+      if (c.type !== 'video') continue;
+      const e = this.el(c);
+      const v = e.v;
+      const a = act.find((x) => x.item === it);
+      e.active = !!a;
+      if (a) {
+        const target = clamp(c.trimIn + a.local, 0, Math.max(0, c.trimOut - 0.001));
+        if (playing) {
+          if (v.paused) { this.seekEl(v, target); v.play().catch(() => {}); }
+          else if (Math.abs(v.currentTime - target) > 0.15) this.seekEl(v, target);
+        } else {
+          if (!v.paused) v.pause();
+          if (!v.seeking && Math.abs(v.currentTime - target) > 0.01) this.seekEl(v, target);
+        }
+        this.setGain(e, c.muted ? 0 : c.volume * a.gain);
+      } else {
+        if (!v.paused) v.pause();
+        if (!v.seeking && it.start > t && it.start - t < 0.8 && Math.abs(v.currentTime - c.trimIn) > 0.05) this.seekEl(v, c.trimIn);
+        this.setGain(e, 0);
+      }
+    }
+    const m = this.music();
+    if (m) {
+      const target = state.music.offset + t;
+      const dur = music.duration || Infinity;
+      m.active = playing && target < dur;
+      if (m.active) {
+        if (m.a.paused) { this.seekEl(m.a, target); m.a.play().catch(() => {}); }
+        else if (Math.abs(m.a.currentTime - target) > 0.2) this.seekEl(m.a, target);
+      } else if (!m.a.paused) m.a.pause();
+      this.setGain(m, state.music.volume);
+    }
+  }
+  pauseAll() {
+    for (const e of this.els.values()) { e.active = false; if (!e.v.paused) e.v.pause(); }
+    if (this.musicEl) { this.musicEl.active = false; if (!this.musicEl.a.paused) this.musicEl.a.pause(); }
+  }
+  layers(tl, t) {
+    const out = [];
+    for (const a of activeItems(tl, t)) {
+      const c = a.item.clip;
+      if (c.type === 'image') {
+        out.push({ src: c.bitmap, sw: c.w, sh: c.h, fit: c.fit, alpha: a.alpha });
+      } else {
+        const e = this.els.get(c.id);
+        if (e && e.v.readyState >= 2 && e.v.videoWidth) out.push({ src: e.v, sw: e.v.videoWidth, sh: e.v.videoHeight, fit: c.fit, alpha: a.alpha });
+      }
+    }
+    return out;
+  }
+  destroy() {
+    for (const id of [...this.els.keys()]) this.dropEl(id);
+    if (this.musicEl) { try { this.musicEl.a.pause(); } catch (_) {} this.musicEl.a.removeAttribute('src'); this.musicEl = null; }
+  }
+}
+
+// ============================== 12. Прев'ю ==============================
+const pv = {
+  canvas: $('#preview'),
+  ctx: null,
+  t: 0,
+  playing: false,
+  t0: 0,
+  wall0: 0,
+  dirty: true,
+};
+pv.ctx = pv.canvas.getContext('2d');
+let audioRig = null;  // {ctx, out}
+function getAudioRig(create = false) {
+  if (!audioRig && create) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) {
+      const ctx = new AC();
+      audioRig = { ctx, out: ctx.destination };
+    }
+  }
+  return audioRig;
+}
+const player = new Player({ getAudio: () => getAudioRig(false) });
+player.onFrame = () => { pv.dirty = true; };
+
+function requestRender() { pv.dirty = true; }
+function renderPreview() {
+  const tl = getTimeline();
+  const total = displayTotal();
+  const media = { layers: player.layers(tl, pv.t), total, clipProgress: clipProgressAt(tl, pv.t) };
+  renderFrame(pv.ctx, pv.t, state, pv.canvas.width, pv.canvas.height, media);
+}
+function play() {
+  const rig = getAudioRig(true);
+  rig?.ctx.resume?.();
+  player.unlock();
+  if (pv.t >= displayTotal() - 1e-3) pv.t = 0;
+  pv.playing = true;
+  pv.t0 = pv.t;
+  pv.wall0 = performance.now();
+  updatePlayButton();
+}
+function pause() {
+  pv.playing = false;
+  player.pauseAll();
+  pv.dirty = true;
+  updatePlayButton();
+}
+function seek(t) {
+  pv.t = clamp(t, 0, displayTotal());
+  if (pv.playing) { pv.t0 = pv.t; pv.wall0 = performance.now(); }
+  pv.dirty = true;
+}
+function updatePlayButton() {
+  $('#icPlay').hidden = pv.playing;
+  $('#icPause').hidden = !pv.playing;
+  $('#btnPlay').setAttribute('aria-label', pv.playing ? 'Пауза' : 'Відтворити');
+}
+let lastUiUpdate = 0;
+function updateTransport(force = false) {
+  const now = performance.now();
+  if (!force && now - lastUiUpdate < 60) return;
+  lastUiUpdate = now;
+  const total = displayTotal();
+  const seekEl = $('#seek');
+  seekEl.max = String(total);
+  if (document.activeElement !== seekEl || !seekDragging) seekEl.value = String(pv.t);
+  $('#timeLabel').textContent = `${fmtTime(pv.t)} / ${fmtTime(total)}`;
+}
+let seekDragging = false;
+function loop(now) {
+  if (pv.playing) {
+    const total = displayTotal();
+    let t = pv.t0 + (now - pv.wall0) / 1000;
+    if (t >= total) {
+      if (state.loop) {
+        t = total > 0 ? t % total : 0;
+        pv.t0 = t;
+        pv.wall0 = now;
+        player.pauseAll();
+      } else {
+        t = total;
+        pv.t = t;
+        pause();
+      }
+    }
+    pv.t = t;
+  }
+  const tl = getTimeline();
+  if (!exportJob?.realtimeBusy) player.update(tl, pv.t, pv.playing);
+  if (pv.playing || pv.dirty) {
+    pv.dirty = false;
+    renderPreview();
+    updateTransport();
+  }
+  requestAnimationFrame(loop);
+}
+
+function layoutPreview() {
+  const inner = $('#stageInner');
+  const phone = $('#phone');
+  const r = inner.getBoundingClientRect();
+  const ar = state.frame.w / state.frame.h;
+  let h = Math.max(220, r.height - 8), w = h * ar;
+  const maxW = Math.max(160, r.width - 24);
+  if (w > maxW) { w = maxW; h = w / ar; }
+  phone.style.width = Math.round(w) + 'px';
+  phone.style.height = Math.round(w / ar) + 'px';
+  const dpr = clamp(window.devicePixelRatio || 1, 1, 2);
+  const cw = Math.max(2, Math.round(w * dpr / 2) * 2);
+  const ch = Math.max(2, Math.round(cw / ar));
+  if (pv.canvas.width !== cw || pv.canvas.height !== ch) {
+    pv.canvas.width = cw;
+    pv.canvas.height = ch;
+  }
+  pv.dirty = true;
+}
+
+// ============================== 13. Медіа: додавання ==============================
+async function addFiles(fileList) {
+  const files = Array.from(fileList || []);
+  let added = 0;
+  for (const f of files) {
+    const name = f.name || '';
+    try {
+      if (f.type.startsWith('video/') || /\.(mp4|m4v|mov|webm)$/i.test(name)) { await addVideo(f); added++; }
+      else if (f.type.startsWith('image/') || /\.(jpe?g|png|webp)$/i.test(name)) { await addImage(f); added++; }
+      else if (f.type.startsWith('audio/') || /\.(mp3|m4a|aac|wav|ogg|opus|flac)$/i.test(name)) { await setMusic(f); }
+      else toast(`Непідтримуваний файл: ${name}`, 'warn');
+    } catch (e) {
+      console.error(e);
+      toast(`Не вдалося відкрити «${name}»: ${e.message || e}`, 'err', 6000);
+    }
+  }
+  if (added) {
+    invalidateTimeline();
+    renderClipList();
+    requestRender();
+  }
+}
+
+async function probeVideo(url) {
+  const v = document.createElement('video');
+  v.preload = 'auto';
+  v.muted = true;
+  v.playsInline = true;
+  v.src = url;
+  await once(v, 'loadedmetadata');
+  if (!Number.isFinite(v.duration)) {
+    // WebM з MediaRecorder часто не має тривалості в заголовку
+    v.currentTime = 1e9;
+    await once(v, 'seeked').catch(() => {});
+    v.currentTime = 0;
+  }
+  const duration = v.duration;
+  const w = v.videoWidth, h = v.videoHeight;
+  if (!w || !h || !Number.isFinite(duration) || duration <= 0) throw new Error('файл не містить відео, яке браузер може відтворити');
+  v.currentTime = Math.min(0.25, duration / 3);
+  await once(v, 'seeked').catch(() => {});
+  const thumb = makeThumb(v, w, h);
+  v.removeAttribute('src');
+  v.load();
+  return { duration, w, h, thumb };
+}
+function makeThumb(src, w, h) {
+  const tw = 96, th = 152;
+  const c = document.createElement('canvas');
+  c.width = tw; c.height = th;
+  const x = c.getContext('2d');
+  const k = Math.max(tw / w, th / h);
+  x.fillStyle = '#000';
+  x.fillRect(0, 0, tw, th);
+  try { x.drawImage(src, (tw - w * k) / 2, (th - h * k) / 2, w * k, h * k); } catch (_) {}
+  return c.toDataURL('image/jpeg', 0.7);
+}
+async function addVideo(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const p = await probeVideo(url);
+    clips.push({
+      id: uid(), type: 'video', file, url, name: file.name, w: p.w, h: p.h, srcDur: p.duration,
+      trimIn: 0, trimOut: p.duration, photoDur: 3, fit: 'cover', volume: 1, muted: false, thumb: p.thumb, _open: false,
+    });
+  } catch (e) {
+    URL.revokeObjectURL(url);
+    throw e;
+  }
+}
+async function addImage(file) {
+  let bmp;
+  try {
+    bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
+  } catch (_) {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    bmp = await createImageBitmap(img);
+    URL.revokeObjectURL(url);
+  }
+  const maxSide = 2600;
+  if (Math.max(bmp.width, bmp.height) > maxSide) {
+    const k = maxSide / Math.max(bmp.width, bmp.height);
+    const small = await createImageBitmap(bmp, { resizeWidth: Math.round(bmp.width * k), resizeHeight: Math.round(bmp.height * k), resizeQuality: 'high' });
+    bmp.close?.();
+    bmp = small;
+  }
+  clips.push({
+    id: uid(), type: 'image', file, url: null, name: file.name, w: bmp.width, h: bmp.height, bitmap: bmp, srcDur: 0,
+    trimIn: 0, trimOut: 0, photoDur: 3, fit: 'cover', volume: 1, muted: true, thumb: makeThumb(bmp, bmp.width, bmp.height), _open: false,
+  });
+}
+async function setMusic(file) {
+  const url = URL.createObjectURL(file);
+  const a = document.createElement('audio');
+  a.preload = 'metadata';
+  a.src = url;
+  try {
+    await once(a, 'loadedmetadata');
+  } catch (e) {
+    URL.revokeObjectURL(url);
+    throw new Error('браузер не може відтворити цей аудіофайл');
+  }
+  if (music) URL.revokeObjectURL(music.url);
+  music = { file, url, name: file.name, duration: Number.isFinite(a.duration) ? a.duration : Infinity };
+  a.removeAttribute('src');
+  player.prune();
+  renderMusic();
+  toast(`Фонова музика: ${file.name}`, 'ok');
+}
+function removeMusic() {
+  if (!music) return;
+  const url = music.url;
+  music = null;
+  player.prune();
+  URL.revokeObjectURL(url);
+  renderMusic();
+}
+function renderMusic() {
+  $('#musicPill').hidden = !music;
+  $('#btnMusicAdd').textContent = music ? 'Замінити аудіофайл…' : 'Додати аудіофайл…';
+  if (music) $('#musicName').textContent = music.name;
+}
+function removeClip(id) {
+  const i = clips.findIndex((c) => c.id === id);
+  if (i < 0) return;
+  const [c] = clips.splice(i, 1);
+  if (c.url && !clips.some((x) => x.url === c.url)) setTimeout(() => URL.revokeObjectURL(c.url), 1000);
+  if (c.bitmap && !clips.some((x) => x.bitmap === c.bitmap)) c.bitmap.close?.();
+  player.prune();
+}
+
+// ============================== 14. UI: кліпи ==============================
+function renderClipList() {
+  const ul = $('#clipList');
+  ul.innerHTML = '';
+  clips.forEach((c, i) => {
+    const li = document.createElement('li');
+    li.className = 'clip' + (c._open ? ' open' : '');
+    li.dataset.id = c.id;
+    const isVid = c.type === 'video';
+    li.innerHTML = `
+      <div class="clip-head">
+        <span class="handle" title="Перетягніть, щоб змінити порядок">⋮⋮</span>
+        <img class="thumb" alt="" src="${c.thumb}" data-act="goto">
+        <div class="meta" data-act="toggle">
+          <div class="name" title="${escapeHtml(c.name)}">${i + 1}. ${escapeHtml(c.name)}</div>
+          <div class="sub" data-sub>${isVid ? 'Відео' : 'Фото'} · ${clipLen(c).toFixed(2)} с${isVid && c.muted ? ' · без звуку' : ''}</div>
+        </div>
+        <div class="btns">
+          <button class="icon-btn" type="button" data-act="up" title="Вище" ${i === 0 ? 'disabled' : ''}>↑</button>
+          <button class="icon-btn" type="button" data-act="down" title="Нижче" ${i === clips.length - 1 ? 'disabled' : ''}>↓</button>
+          <button class="icon-btn" type="button" data-act="dup" title="Дублювати">⧉</button>
+          <button class="icon-btn" type="button" data-act="toggle" title="Налаштування кліпу">⚙</button>
+          <button class="icon-btn" type="button" data-act="del" title="Видалити">✕</button>
+        </div>
+      </div>
+      <div class="clip-body">
+        ${isVid ? `
+          <div class="row"><label>Початок, с</label><div class="ctl">
+            <input type="range" min="0" max="${c.srcDur}" step="0.01" value="${c.trimIn}" data-clip="trimIn">
+            <input type="number" class="num" min="0" max="${c.srcDur}" step="0.01" value="${c.trimIn.toFixed(2)}" data-clip="trimIn"></div></div>
+          <div class="row"><label>Кінець, с</label><div class="ctl">
+            <input type="range" min="0" max="${c.srcDur}" step="0.01" value="${c.trimOut}" data-clip="trimOut">
+            <input type="number" class="num" min="0" max="${c.srcDur}" step="0.01" value="${c.trimOut.toFixed(2)}" data-clip="trimOut"></div></div>
+          <div class="row"><label>Гучність</label><div class="ctl">
+            <input type="range" min="0" max="1" step="0.01" value="${c.volume}" data-clip="volume"><output data-clip-out="volume">${Math.round(c.volume * 100)}%</output></div></div>
+          <label class="toggle"><input type="checkbox" data-clip="muted" ${c.muted ? 'checked' : ''}><span class="track"></span><span>Без звуку</span></label>
+        ` : `
+          <div class="row"><label>Тривалість, с</label><div class="ctl">
+            <input type="range" min="0.5" max="15" step="0.1" value="${c.photoDur}" data-clip="photoDur">
+            <input type="number" class="num" min="0.5" max="120" step="0.1" value="${c.photoDur}" data-clip="photoDur"></div></div>
+        `}
+        <div class="row"><label>Вписування</label><div class="ctl"><select data-clip="fit">
+          <option value="cover" ${c.fit === 'cover' ? 'selected' : ''}>Cover — заповнити кадр</option>
+          <option value="contain" ${c.fit === 'contain' ? 'selected' : ''}>Contain — розмитий фон</option>
+        </select></div></div>
+      </div>`;
+    ul.append(li);
+  });
+  $('#clipCount').textContent = String(clips.length);
+  $('#emptyHint').hidden = clips.length > 0;
+  updateTotals();
+}
+function updateTotals() {
+  const tl = getTimeline();
+  $('#totalDur').textContent = `${fmtTime(tl.total)} (${tl.total.toFixed(2)} с)`;
+  updateExportSummary();
+  updateTransport(true);
+}
+function onClipInput(e) {
+  const el = e.target.closest('[data-clip]');
+  if (!el) return;
+  const li = el.closest('li.clip');
+  const c = clips.find((x) => x.id === li.dataset.id);
+  if (!c) return;
+  const key = el.dataset.clip;
+  if (key === 'muted') c.muted = el.checked;
+  else if (key === 'fit') c.fit = el.value;
+  else {
+    let v = parseFloat(el.value);
+    if (!Number.isFinite(v)) return;
+    if (key === 'trimIn') v = clamp(v, 0, Math.max(0, c.trimOut - 0.1));
+    if (key === 'trimOut') v = clamp(v, Math.min(c.srcDur, c.trimIn + 0.1), c.srcDur);
+    if (key === 'photoDur') v = clamp(v, 0.5, 120);
+    if (key === 'volume') v = clamp(v, 0, 1);
+    c[key] = v;
+    for (const other of $$(`[data-clip="${key}"]`, li)) if (other !== el) other.value = key === 'volume' ? v : v.toFixed(2);
+    const out = $(`[data-clip-out="${key}"]`, li);
+    if (out) out.textContent = Math.round(v * 100) + '%';
+  }
+  const sub = $('[data-sub]', li);
+  if (sub) sub.textContent = `${c.type === 'video' ? 'Відео' : 'Фото'} · ${clipLen(c).toFixed(2)} с${c.type === 'video' && c.muted ? ' · без звуку' : ''}`;
+  invalidateTimeline();
+  updateTotals();
+  if (key === 'trimIn' && !pv.playing) {
+    const it = getTimeline().items.find((x) => x.clip === c);
+    if (it) seek(it.start);
+  }
+  requestRender();
+}
+function onClipClick(e) {
+  const btn = e.target.closest('[data-act]');
+  if (!btn) return;
+  const li = btn.closest('li.clip');
+  const i = clips.findIndex((x) => x.id === li.dataset.id);
+  if (i < 0) return;
+  const act = btn.dataset.act;
+  if (act === 'up' && i > 0) [clips[i - 1], clips[i]] = [clips[i], clips[i - 1]];
+  else if (act === 'down' && i < clips.length - 1) [clips[i + 1], clips[i]] = [clips[i], clips[i + 1]];
+  else if (act === 'dup') clips.splice(i + 1, 0, { ...clips[i], id: uid(), _open: false });
+  else if (act === 'del') removeClip(clips[i].id);
+  else if (act === 'toggle') { clips[i]._open = !clips[i]._open; li.classList.toggle('open', clips[i]._open); return; }
+  else if (act === 'goto') {
+    const it = getTimeline().items[i];
+    if (it) seek(it.start + 0.001);
+    return;
+  }
+  invalidateTimeline();
+  renderClipList();
+  seek(Math.min(pv.t, displayTotal()));
+}
+function setupClipDnD() {
+  const ul = $('#clipList');
+  let dragId = null;
+  ul.addEventListener('pointerdown', (e) => {
+    const h = e.target.closest('.handle');
+    if (h) h.closest('li.clip').draggable = true;
+  });
+  ul.addEventListener('dragstart', (e) => {
+    const li = e.target.closest('li.clip');
+    if (!li || !li.draggable) return;
+    dragId = li.dataset.id;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/x-reels-clip', dragId);
+    li.classList.add('dragging');
+  });
+  const clearMarks = () => $$('.clip', ul).forEach((x) => x.classList.remove('drop-before', 'drop-after', 'dragging'));
+  ul.addEventListener('dragover', (e) => {
+    if (!dragId) return;
+    e.preventDefault();
+    const li = e.target.closest('li.clip');
+    $$('.clip', ul).forEach((x) => x.classList.remove('drop-before', 'drop-after'));
+    if (!li || li.dataset.id === dragId) return;
+    const r = li.getBoundingClientRect();
+    li.classList.add(e.clientY < r.top + r.height / 2 ? 'drop-before' : 'drop-after');
+  });
+  ul.addEventListener('drop', (e) => {
+    if (!dragId) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const li = e.target.closest('li.clip');
+    const from = clips.findIndex((c) => c.id === dragId);
+    if (li && li.dataset.id !== dragId && from >= 0) {
+      const r = li.getBoundingClientRect();
+      const after = e.clientY >= r.top + r.height / 2;
+      const [c] = clips.splice(from, 1);
+      let to = clips.findIndex((x) => x.id === li.dataset.id);
+      if (after) to++;
+      clips.splice(to, 0, c);
+      invalidateTimeline();
+      renderClipList();
+      requestRender();
+    }
+    dragId = null;
+    clearMarks();
+  });
+  ul.addEventListener('dragend', () => {
+    dragId = null;
+    clearMarks();
+    $$('.clip', ul).forEach((x) => { x.draggable = false; });
+  });
+}
+function setupFileDrop() {
+  const overlay = $('#dropOverlay');
+  let depth = 0;
+  const hasFiles = (e) => Array.from(e.dataTransfer?.types || []).includes('Files');
+  window.addEventListener('dragenter', (e) => { if (hasFiles(e)) { depth++; overlay.hidden = false; } });
+  window.addEventListener('dragleave', (e) => { if (hasFiles(e) && --depth <= 0) { depth = 0; overlay.hidden = true; } });
+  window.addEventListener('dragover', (e) => { if (hasFiles(e)) e.preventDefault(); });
+  window.addEventListener('drop', (e) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    depth = 0;
+    overlay.hidden = true;
+    addFiles(e.dataTransfer.files);
+  });
+}
+
+// ============================== 15. UI: налаштування ==============================
+function fmtOut(v, kind) {
+  if (kind === 'sec') return `${(+v).toFixed(2)} с`;
+  if (kind === 'pct') return `${Math.round(v * 100)}%`;
+  if (kind === 'int%') return `${Math.round(v)}%`;
+  if (kind === 'pt') return `${v > 0 ? '+' : ''}${Math.round(v)} pt`;
+  return String(v);
+}
+function refreshControls() {
+  for (const el of $$('[data-bind]')) {
+    const v = getPath(state, el.dataset.bind);
+    if (el.type === 'checkbox') el.checked = !!v;
+    else if (document.activeElement !== el) el.value = v ?? '';
+  }
+  for (const o of $$('[data-out]')) o.textContent = fmtOut(getPath(state, o.dataset.out), o.dataset.fmt);
+  for (const f of $$('[data-fmt-count]')) f.textContent = formatCount(getPath(state, f.dataset.fmtCount));
+  for (const b of $$('[data-lock]')) {
+    const on = !!state.stats.lock[b.dataset.lock];
+    b.textContent = on ? '🔒' : '🔓';
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', String(on));
+  }
+  for (const el of $$('[data-show-if]')) {
+    const [p, val] = el.dataset.showIf.split('=');
+    const v = getPath(state, p);
+    el.hidden = val === undefined ? !v : String(v) !== val;
+  }
+  const nick = $('#nickInput');
+  if (document.activeElement !== nick) { nick.value = state.author.nickname; nick.classList.remove('invalid'); $('#nickErr').textContent = ''; }
+  $('#loopToggle').checked = !!state.loop;
+  syncFramePresetUI();
+  const calib = $('#calibImg');
+  calib.hidden = !state.look.calib;
+  calib.style.opacity = String(state.look.calibOpacity / 100);
+  const ref = `reference/${state.look.calibRef}.png`;
+  if (calib.getAttribute('src') !== ref) calib.setAttribute('src', ref);
+  updateExportSummary();
+}
+function onStateChange() {
+  saveState();
+  refreshControls();
+  invalidateTimeline();
+  requestRender();
+}
+function bindControls() {
+  for (const el of $$('[data-bind]')) {
+    const evt = (el.type === 'checkbox' || el.tagName === 'SELECT') ? 'change' : 'input';
+    el.addEventListener(evt, () => {
+      const path = el.dataset.bind;
+      let v;
+      if (el.type === 'checkbox') v = el.checked;
+      else if (el.type === 'range' || el.type === 'number' || el.dataset.type === 'int') {
+        v = parseFloat(el.value);
+        if (!Number.isFinite(v)) return;
+        if (el.dataset.type === 'int') v = Math.max(0, Math.round(v));
+      } else v = el.value;
+      setPath(state, path, v);
+      if (path === 'author.nickname' || path === 'caption.text' || path === 'track.artist' || path === 'track.title') ensureFonts().then(requestRender);
+      onStateChange();
+    });
+  }
+  for (const b of $$('[data-lock]')) b.addEventListener('click', () => {
+    const k = b.dataset.lock;
+    state.stats.lock[k] = !state.stats.lock[k];
+    onStateChange();
+  });
+  // Нікнейм: лише a–z 0–9 . _ ; у кадр потрапляє тільки валідне значення
+  const nick = $('#nickInput');
+  nick.addEventListener('input', () => {
+    const raw = nick.value;
+    const clean = raw.toLowerCase().replace(/[^a-z0-9._]/g, '').slice(0, 30);
+    if (clean !== raw) {
+      const pos = nick.selectionStart - (raw.length - clean.length);
+      nick.value = clean;
+      try { nick.setSelectionRange(pos, pos); } catch (_) {}
+    }
+    const err = nickError(clean) || (clean !== raw.toLowerCase() ? '' : '');
+    $('#nickErr').textContent = err || (clean !== raw ? 'Недопустимі символи прибрано (лише a–z, 0–9, «.» і «_»)' : '');
+    nick.classList.toggle('invalid', !!err);
+    if (!err) {
+      state.author.nickname = clean;
+      saveState();
+      clearAuthorAvatarCache();
+      requestRender();
+    }
+  });
+  nick.addEventListener('blur', () => {
+    if (nickError(nick.value)) { nick.value = state.author.nickname; nick.classList.remove('invalid'); $('#nickErr').textContent = ''; }
+  });
+  $('#btnNick').addEventListener('click', () => {
+    state.author.nickname = Nick.generate();
+    clearAuthorAvatarCache();
+    $('#nickInput').value = state.author.nickname;
+    $('#nickErr').textContent = '';
+    $('#nickInput').classList.remove('invalid');
+    onStateChange();
+  });
+  $('#btnStats').addEventListener('click', () => { randomizeStats(); onStateChange(); });
+  $('#loopToggle').addEventListener('change', (e) => { state.loop = e.target.checked; saveState(); });
+
+  // Пресет кадру
+  $('#framePreset').addEventListener('change', (e) => {
+    const v = e.target.value;
+    if (v === 'custom') { $('#customFrameRow').hidden = false; return; }
+    const [w, h] = v.split('x').map(Number);
+    setFrame(w, h);
+  });
+  for (const id of ['#frameW', '#frameH']) $(id).addEventListener('change', () => setFrame(+$('#frameW').value, +$('#frameH').value));
+
+  $('#btnApplyRef').addEventListener('click', () => applyReferencePreset(state.look.calibRef));
+  $('#btnPresetSave').addEventListener('click', savePresetFile);
+  $('#btnPresetLoad').addEventListener('click', () => $('#presetInput').click());
+  $('#presetInput').addEventListener('change', async (e) => {
+    const f = e.target.files[0];
+    e.target.value = '';
+    if (f) await loadPresetFile(f);
+  });
+  $('#btnReset').addEventListener('click', async () => {
+    if (!confirm('Скинути всі налаштування до стандартних? Медіафайли залишаться.')) return;
+    state = structuredClone(DEFAULT_STATE);
+    await loadAllAvatars();
+    buildAvatarUI();
+    afterFrameChange();
+    onStateChange();
+  });
+
+  // Медіа
+  $('#btnAddFiles').addEventListener('click', () => $('#fileInput').click());
+  $('#fileInput').addEventListener('change', (e) => { addFiles(e.target.files); e.target.value = ''; });
+  const dz = $('#dropzone');
+  dz.addEventListener('dragover', (e) => { if (Array.from(e.dataTransfer.types).includes('Files')) dz.classList.add('over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+  dz.addEventListener('drop', () => dz.classList.remove('over'));
+  $('#clipList').addEventListener('input', onClipInput);
+  $('#clipList').addEventListener('change', (e) => { if (e.target.matches('select, input[type=checkbox]')) onClipInput(e); });
+  $('#clipList').addEventListener('click', onClipClick);
+  $('#btnMusicAdd').addEventListener('click', () => $('#musicInput').click());
+  $('#musicInput').addEventListener('change', async (e) => {
+    const f = e.target.files[0];
+    e.target.value = '';
+    if (f) { try { await setMusic(f); } catch (err) { toast(`Музика: ${err.message}`, 'err'); } }
+  });
+  $('#btnMusicRemove').addEventListener('click', removeMusic);
+
+  // Транспорт
+  $('#btnPlay').addEventListener('click', () => (pv.playing ? pause() : play()));
+  const seekEl = $('#seek');
+  seekEl.addEventListener('pointerdown', () => { seekDragging = true; });
+  window.addEventListener('pointerup', () => { seekDragging = false; });
+  seekEl.addEventListener('input', () => seek(parseFloat(seekEl.value)));
+  window.addEventListener('keydown', (e) => {
+    if (e.code !== 'Space') return;
+    const tag = (document.activeElement?.tagName || '').toLowerCase();
+    if (['input', 'textarea', 'select', 'button'].includes(tag) || $('#exportDlg').open) return;
+    e.preventDefault();
+    pv.playing ? pause() : play();
+  });
+
+  // Експорт
+  $('#btnExportTop').addEventListener('click', openExportDialog);
+  $('#btnExportSide').addEventListener('click', openExportDialog);
+}
+function clearAuthorAvatarCache() {
+  for (const k of [...defaultAvatarCache.keys()]) if (k.startsWith('author|')) defaultAvatarCache.delete(k);
+  refreshAvatarPreviews();
+}
+
+function randomizeStats() {
+  const S = state.stats, Lk = S.lock;
+  const noise = () => 1 + (Math.random() * 2 - 1) * 0.04;
+  const views = Math.exp(rand(Math.log(5e4), Math.log(2e7)));
+  const likes = Lk.likes ? S.likes : Math.max(1, Math.round(views * rand(0.03, 0.10) * noise()));
+  if (!Lk.likes) S.likes = likes;
+  if (!Lk.comments) S.comments = Math.max(0, Math.round(likes * rand(0.005, 0.04) * noise()));
+  if (!Lk.reposts) S.reposts = Math.max(0, Math.round(likes * rand(0.05, 0.4) * noise()));
+  if (!Lk.saves) S.saves = Math.max(0, Math.round(likes * rand(0.05, 0.6) * noise()));
+}
+
+// ----- Кадр / пресет макета -----
+function syncFramePresetUI() {
+  const key = `${state.frame.w}x${state.frame.h}`;
+  const sel = $('#framePreset');
+  const known = [...sel.options].some((o) => o.value === key);
+  if (document.activeElement !== sel) sel.value = known ? key : 'custom';
+  $('#customFrameRow').hidden = known && sel.value !== 'custom';
+  if (document.activeElement !== $('#frameW')) $('#frameW').value = state.frame.w;
+  if (document.activeElement !== $('#frameH')) $('#frameH').value = state.frame.h;
+}
+function setFrame(w, h) {
+  if (!Number.isFinite(w) || !Number.isFinite(h)) return;
+  state.frame.w = clamp(Math.round(w / 2) * 2, 240, 4096);
+  state.frame.h = clamp(Math.round(h / 2) * 2, 240, 4096);
+  afterFrameChange();
+  onStateChange();
+}
+function afterFrameChange() { layoutPreview(); }
+
+// ----- Аватарки -----
+function buildAvatarUI() {
+  const box = $('#avatarList');
+  box.innerHTML = '';
+  for (const slot of AVATAR_SLOTS) {
+    const a = state.avatars[slot];
+    const row = document.createElement('div');
+    row.className = 'av-row';
+    row.dataset.slot = slot;
+    row.innerHTML = `
+      <canvas width="92" height="92"></canvas>
+      <div class="av-ctl">
+        <div class="av-name">${AVATAR_META[slot].label}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn small" type="button" data-av="upload">Завантажити</button>
+          <button class="btn small ghost" type="button" data-av="reset">Скинути на дефолтну</button>
+          <input type="file" accept="image/*" hidden data-av="file">
+        </div>
+        <label class="mini">Масштаб<input type="range" min="1" max="4" step="0.01" value="${a.zoom}" data-av="zoom"></label>
+        <label class="mini">Зсув X<input type="range" min="-1" max="1" step="0.01" value="${a.x}" data-av="x"></label>
+        <label class="mini">Зсув Y<input type="range" min="-1" max="1" step="0.01" value="${a.y}" data-av="y"></label>
+      </div>`;
+    box.append(row);
+  }
+  box.oninput = (e) => {
+    const el = e.target.closest('[data-av]');
+    if (!el || !['zoom', 'x', 'y'].includes(el.dataset.av)) return;
+    const slot = el.closest('.av-row').dataset.slot;
+    state.avatars[slot][el.dataset.av] = parseFloat(el.value);
+    saveState();
+    refreshAvatarPreviews();
+    requestRender();
+  };
+  box.onclick = async (e) => {
+    const el = e.target.closest('[data-av]');
+    if (!el) return;
+    const row = el.closest('.av-row');
+    const slot = row.dataset.slot;
+    if (el.dataset.av === 'upload') $('[data-av=file]', row).click();
+    if (el.dataset.av === 'reset') {
+      state.avatars[slot] = { data: null, zoom: 1, x: 0, y: 0 };
+      delete avatarImages[slot];
+      for (const k of ['zoom', 'x', 'y']) $(`[data-av=${k}]`, row).value = state.avatars[slot][k];
+      saveState();
+      refreshAvatarPreviews();
+      requestRender();
+    }
+  };
+  box.onchange = async (e) => {
+    const el = e.target.closest('[data-av=file]');
+    if (!el || !el.files[0]) return;
+    const row = el.closest('.av-row');
+    const slot = row.dataset.slot;
+    try {
+      state.avatars[slot] = { data: await fileToAvatarData(el.files[0]), zoom: 1, x: 0, y: 0 };
+      for (const k of ['zoom', 'x', 'y']) $(`[data-av=${k}]`, row).value = state.avatars[slot][k];
+      await loadAvatarImage(slot);
+      saveState();
+      refreshAvatarPreviews();
+      requestRender();
+    } catch (err) {
+      toast('Не вдалося відкрити зображення', 'err');
+    }
+    el.value = '';
+  };
+  refreshAvatarPreviews();
+}
+function refreshAvatarPreviews() {
+  for (const row of $$('#avatarList .av-row')) {
+    const c = $('canvas', row);
+    const x = c.getContext('2d');
+    x.clearRect(0, 0, c.width, c.height);
+    drawAvatar(x, row.dataset.slot, c.width / 2, c.height / 2, c.width);
+  }
+}
+
+// ----- Пресети JSON -----
+function savePresetFile() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'reels-overlay-preset.json';
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+async function loadPresetFile(file) {
+  try {
+    const obj = JSON.parse(await file.text());
+    state = sanitizeState(deepMerge(DEFAULT_STATE, obj));
+    await loadAllAvatars();
+    buildAvatarUI();
+    await ensureFonts();
+    afterFrameChange();
+    onStateChange();
+    toast('Пресет завантажено', 'ok');
+  } catch (e) {
+    toast('Файл пресету пошкоджений або має неправильний формат', 'err');
+  }
+}
+
+// ----- Калібрування: налаштування як на скріншотах -----
+function applyReferencePreset(ref) {
+  const common = {
+    frame: { w: 1080, h: 2340 },
+    progress: { mode: 'sequence' },
+    look: { ...state.look, gradient: 100, font: 'inter' },
+  };
+  if (ref === 'reels-2') {
+    Object.assign(state, common, {
+      topBar: { show: true, friends: 3, offset: 0 },
+      interested: { show: false },
+      author: { nickname: 'lilyvandang', verified: true, follow: true },
+      floating: { show: false },
+      track: { ...state.track, show: false },
+      caption: { text: '', placeholder: 'See more' },
+      stats: { ...state.stats, likes: 12000, comments: 1740, reposts: 9233, saves: 19200, hideLikes: true },
+      nav: { variant: 'wide', slot3: 'messages', reelsIcon: 'square', dot: false },
+    });
+  } else {
+    Object.assign(state, common, {
+      topBar: { ...state.topBar, show: false },
+      interested: { show: true },
+      author: { nickname: 'nyra.mia2026', verified: false, follow: true },
+      floating: { show: true },
+      track: { show: true, artist: 'Portiz Music', title: 'Oops!' },
+      caption: { text: 'Jugando un rato 😋\n#fyp', placeholder: 'See more' },
+      stats: { ...state.stats, likes: 12000, comments: 5201, reposts: 64000, saves: 123000, hideLikes: true },
+      nav: { variant: 'compact', slot3: 'create', reelsIcon: 'clapper', dot: false },
+    });
+  }
+  pv.t = 0;
+  clearAuthorAvatarCache();
+  ensureFonts().then(requestRender);
+  afterFrameChange();
+  onStateChange();
+}
+
+// ============================== 16. Експорт ==============================
+let mbPromise = null;
+function loadMediabunny() {
+  if (!mbPromise) mbPromise = import('mediabunny').catch((e) => { mbPromise = null; throw e; });
+  return mbPromise;
+}
+let exportJob = null;  // {ac, realtimeBusy}
+let lastExport = null; // {blob, url, name}
+
+function updateExportSummary() {
+  const el = $('#exportSummary');
+  if (!el) return;
+  const e = state.export;
+  el.textContent = `${state.frame.w}×${state.frame.h}, ${e.fps} fps, ${e.format.toUpperCase()}, ${e.audio ? 'зі звуком' : 'без звуку'} · тривалість ${fmtTime(getTimeline().total)}`;
+}
+function videoBitrate(e, W, H) {
+  if (e.quality === 'custom') return Math.round(clamp(e.bitrate, 4, 20) * 1e6);
+  const base = { low: 4, medium: 8, high: 12 }[e.quality] || 8; // Мбіт/с для 1080×1920@30
+  const px = (W * H) / (1080 * 1920);
+  return Math.round(clamp(base * px * Math.sqrt(e.fps / 30), 1.5, 40) * 1e6);
+}
+// Для покадрового шляху достатньо VideoEncoder: звук може кодувати програмний AAC-кодер (WASM).
+function hasWebCodecs() {
+  return typeof VideoEncoder === 'function' && typeof VideoFrame === 'function' && typeof OffscreenCanvas === 'function';
+}
+
+function openExportDialog() {
+  const d = $('#exportDlg');
+  const e = state.export;
+  for (const r of $$('input[name=exFormat]')) r.checked = r.value === e.format;
+  for (const r of $$('input[name=exFps]')) r.checked = +r.value === e.fps;
+  const key = `${state.frame.w}x${state.frame.h}`;
+  $('#exRes').value = [...$('#exRes').options].some((o) => o.value === key) ? key : 'custom';
+  $('#exW').value = state.frame.w;
+  $('#exH').value = state.frame.h;
+  $('#exQuality').value = e.quality;
+  $('#exBitrate').value = e.bitrate;
+  $('#exAudio').checked = e.audio;
+  $('#exAudioBr').value = String(e.audioBitrate);
+  $('#exName').value = e.filename || 'reels';
+  exportView('settings');
+  syncExportForm();
+  if (!d.open) d.showModal();
+  checkExportSupport();
+}
+function syncExportForm() {
+  const fmt = $('input[name=exFormat]:checked')?.value || 'mp4';
+  $('#exExt').textContent = '.' + fmt;
+  $('#exCustomRow').hidden = $('#exRes').value !== 'custom';
+  $('#exBitrateRow').hidden = $('#exQuality').value !== 'custom';
+  $('#exBitrateOut').textContent = `${$('#exBitrate').value} Мбіт/с`;
+  $('#exAudioBr').disabled = !$('#exAudio').checked;
+}
+function readExportForm() {
+  const e = state.export;
+  e.format = $('input[name=exFormat]:checked')?.value || 'mp4';
+  e.fps = +($('input[name=exFps]:checked')?.value || 30);
+  e.quality = $('#exQuality').value;
+  e.bitrate = +$('#exBitrate').value;
+  e.audio = $('#exAudio').checked;
+  e.audioBitrate = +$('#exAudioBr').value;
+  e.filename = ($('#exName').value || 'reels').trim().replace(/[\\/:*?"<>|]+/g, '_').replace(/\.(mp4|webm)$/i, '') || 'reels';
+  const res = $('#exRes').value;
+  let w, h;
+  if (res === 'custom') { w = +$('#exW').value; h = +$('#exH').value; }
+  else [w, h] = res.split('x').map(Number);
+  if (!(w >= 240 && h >= 240 && w <= 4096 && h <= 4096)) throw new Error('Роздільна здатність має бути від 240 до 4096 px');
+  if (w % 2 || h % 2) throw new Error('Ширина й висота мають бути парними числами');
+  if (w !== state.frame.w || h !== state.frame.h) { state.frame.w = w; state.frame.h = h; afterFrameChange(); }
+  saveState();
+  refreshControls();
+}
+function exportView(which) {
+  $('#exSettings').hidden = which !== 'settings';
+  $('#exProgress').hidden = which !== 'progress';
+  $('#exResult').hidden = which !== 'result';
+  $('#exError').hidden = which !== 'error';
+  $('#exStart').hidden = which !== 'settings';
+  $('#exCancel').hidden = which !== 'progress';
+  $('#exClose').hidden = which === 'progress';
+  $('#exX').hidden = which === 'progress';
+  $('#exDownload').hidden = which !== 'result';
+  $('#exFallback').hidden = which !== 'error' || !lastFailedOpts;
+  $('#exClose').textContent = which === 'settings' ? 'Скасувати' : 'Закрити';
+  if (which === 'error' || which === 'result') $('#exStart').hidden = true;
+}
+async function checkExportSupport() {
+  const el = $('#exSupport');
+  el.className = 'note';
+  if (!hasWebCodecs()) {
+    el.className = 'note warn';
+    el.textContent = 'WebCodecs недоступні — буде використано запасний запис у реальному часі (MediaRecorder): експорт триватиме стільки ж, скільки відео.';
+    return;
+  }
+  el.textContent = 'Метод: покадровий рендер + WebCodecs (Mediabunny). Перевіряю кодеки…';
+  try {
+    const MB = await loadMediabunny();
+    const fmt = $('input[name=exFormat]:checked')?.value || 'mp4';
+    const W = state.frame.w, H = state.frame.h;
+    const vc = fmt === 'mp4' ? 'avc' : 'vp9';
+    const okV = await MB.canEncodeVideo(vc, { width: W, height: H, bitrate: 8e6 });
+    const ac = fmt === 'mp4' ? 'aac' : 'opus';
+    const okA = await MB.canEncodeAudio(ac, { numberOfChannels: 2, sampleRate: 48000, bitrate: 128e3 });
+    const parts = ['Метод: покадровий рендер + WebCodecs (Mediabunny).'];
+    if (!okV && fmt === 'mp4') parts.push('H.264 у цьому браузері недоступний — файл буде збережено як WebM (VP9 + Opus).');
+    else if (!okV) parts.push('VP9 недоступний — буде обрано інший кодек.');
+    else if (!okA && fmt === 'mp4') parts.push('Вбудованого AAC немає — буде підвантажено програмний AAC-кодер.');
+    else if (!okA) parts.push('Opus недоступний — звук може бути пропущено.');
+    el.className = okV ? 'note' : 'note warn';
+    el.textContent = parts.join(' ');
+  } catch (e) {
+    el.className = 'note warn';
+    el.textContent = 'Не вдалося завантажити Mediabunny з CDN — буде використано запасний запис у реальному часі (MediaRecorder).';
+  }
+}
+
+let lastFailedOpts = null;
+function setupExportDialog() {
+  const d = $('#exportDlg');
+  for (const el of $$('#exSettings input, #exSettings select')) el.addEventListener('input', syncExportForm);
+  for (const el of $$('#exSettings input, #exSettings select')) el.addEventListener('change', () => { syncExportForm(); if (el.name === 'exFormat') checkExportSupport(); });
+  $('#exRes').addEventListener('change', () => {
+    if ($('#exRes').value !== 'custom') {
+      const [w, h] = $('#exRes').value.split('x').map(Number);
+      $('#exW').value = w; $('#exH').value = h;
+      state.frame.w = w; state.frame.h = h;
+      afterFrameChange();
+      onStateChange();
+    }
+  });
+  const close = () => { if (!exportJob) d.close(); };
+  $('#exClose').addEventListener('click', close);
+  $('#exX').addEventListener('click', close);
+  d.addEventListener('cancel', (e) => { if (exportJob) e.preventDefault(); });
+  $('#exCancel').addEventListener('click', () => exportJob?.ac.abort());
+  $('#exStart').addEventListener('click', () => runExport(false));
+  $('#exFallback').addEventListener('click', () => runExport(true));
+  $('#exDownload').addEventListener('click', () => { if (lastExport) downloadBlob(lastExport.blob, lastExport.name); });
+}
+function downloadBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+function progressUI(phase, frac, extra = {}) {
+  $('#exPhase').textContent = phase;
+  const pct = clamp(frac, 0, 1) * 100;
+  $('#exPct').textContent = `${pct.toFixed(pct < 10 ? 1 : 0)}%`;
+  $('#exBar').style.width = `${pct}%`;
+  if (extra.frames) $('#exFrames').textContent = extra.frames;
+  if (extra.eta !== undefined) $('#exEta').textContent = extra.eta;
+}
+
+async function runExport(forceFallback) {
+  if (exportJob) return;
+  let opts;
+  try {
+    if (!forceFallback) readExportForm();
+    opts = {
+      W: state.frame.w, H: state.frame.h, ...structuredClone(state.export),
+      st: structuredClone(state),
+    };
+  } catch (e) {
+    toast(e.message, 'err');
+    return;
+  }
+  if (!clips.length) { toast('Додайте хоча б один кліп у розділі «Медіа»', 'warn'); return; }
+  pause();
+  const ac = new AbortController();
+  exportJob = { ac, realtimeBusy: false };
+  lastFailedOpts = null;
+  exportView('progress');
+  $('#exRealtimeNote').hidden = true;
+  progressUI('Підготовка…', 0, { frames: '', eta: '' });
+  const notes = [];
+  const started = performance.now();
+  try {
+    await ensureFonts(opts.st);
+    await loadAllAvatars();
+    let result = null;
+    let useFallback = forceFallback || !hasWebCodecs();
+    if (!useFallback) {
+      try { await loadMediabunny(); } catch (e) { useFallback = true; notes.push('Mediabunny не завантажився з CDN — використано запасний запис (MediaRecorder).'); }
+    }
+    if (!useFallback) result = await exportOffline(opts, ac.signal, notes);
+    else {
+      if (!forceFallback && !hasWebCodecs()) notes.push('WebCodecs недоступні — використано запасний запис у реальному часі.');
+      result = await exportRealtime(opts, ac.signal, notes);
+    }
+    const name = `${opts.filename}.${result.ext}`;
+    if (lastExport?.url) URL.revokeObjectURL(lastExport.url);
+    const url = URL.createObjectURL(result.blob);
+    lastExport = { blob: result.blob, url, name };
+    downloadBlob(result.blob, name);
+    $('#exVideo').src = url;
+    const secs = (performance.now() - started) / 1000;
+    $('#exResultInfo').textContent = `Готово: ${name} · ${(result.blob.size / 1048576).toFixed(1)} МБ · ${opts.W}×${opts.H} · ${result.codecs} · ${secs.toFixed(1)} с. Файл завантажено автоматично.`;
+    $('#exNotes').innerHTML = notes.map((n) => `<li>${escapeHtml(n)}</li>`).join('');
+    exportView('result');
+  } catch (e) {
+    if (ac.signal.aborted) {
+      toast('Експорт скасовано', 'warn');
+      exportView('settings');
+    } else {
+      console.error(e);
+      lastFailedOpts = !forceFallback && hasWebCodecs() ? opts : null;
+      $('#exErrorText').textContent = `Помилка експорту: ${e.message || e}`;
+      exportView('error');
+    }
+  } finally {
+    exportJob = null;
+    requestRender();
+  }
+}
+
+/** Мікшування звуку за таймлайном в OfflineAudioContext. */
+async function mixAudio(MB, tl, total, signal, notes, onStep) {
+  const SR = 48000;
+  const length = Math.max(1, Math.ceil(total * SR));
+  const off = new OfflineAudioContext(2, length, SR);
+  let any = false;
+  const n = tl.items.length;
+  let i = 0;
+  for (const it of tl.items) {
+    onStep?.(i++ / Math.max(1, n));
+    const c = it.clip;
+    if (c.type !== 'video' || c.muted || c.volume <= 0) continue;
+    if (signal.aborted) throw new DOMException('aborted', 'AbortError');
+    const dec = await decodeClipAudio(MB, c, notes);
+    if (!dec) continue;
+    const src = off.createBufferSource();
+    src.buffer = dec.buffer;
+    const g = off.createGain();
+    const v = c.volume;
+    const fadeIn = tl.xf > 0 && it.index > 0 ? tl.xf : 0;
+    const fadeOut = tl.xf > 0 && it.index < n - 1 ? tl.xf : 0;
+    g.gain.setValueAtTime(fadeIn ? 0 : v, it.start);
+    if (fadeIn) g.gain.linearRampToValueAtTime(v, it.start + fadeIn);
+    if (fadeOut) {
+      g.gain.setValueAtTime(v, it.end - fadeOut);
+      g.gain.linearRampToValueAtTime(0, it.end);
+    }
+    src.connect(g).connect(off.destination);
+    // dec.offset — де в буфері починається trimIn
+    src.start(it.start, dec.offset, it.len);
+    any = true;
+  }
+  if (music && state.music.volume > 0) {
+    try {
+      const buf = await off.decodeAudioData(await music.file.arrayBuffer());
+      const offset = clamp(state.music.offset, 0, Math.max(0, buf.duration - 0.01));
+      const src = off.createBufferSource();
+      src.buffer = buf;
+      const g = off.createGain();
+      g.gain.value = state.music.volume;
+      src.connect(g).connect(off.destination);
+      src.start(0, offset, Math.max(0, Math.min(total, buf.duration - offset)));
+      any = true;
+    } catch (e) {
+      notes.push(`Не вдалося декодувати фонову музику (${music.name}).`);
+    }
+  }
+  if (!any) return null;
+  return await off.startRendering();
+}
+async function decodeClipAudio(MB, clip, notes) {
+  const input = new MB.Input({ source: new MB.BlobSource(clip.file), formats: MB.ALL_FORMATS });
+  try {
+    const track = await input.getPrimaryAudioTrack();
+    if (!track) return null;
+    if (!(await track.canDecode())) {
+      notes.push(`Звук кліпу «${clip.name}» не вдалося декодувати (кодек ${track.codec || 'невідомий'}).`);
+      return null;
+    }
+    const sink = new MB.AudioBufferSink(track);
+    const chunks = [];
+    for await (const wb of sink.buffers(clip.trimIn, clip.trimOut)) chunks.push(wb);
+    if (!chunks.length) return null;
+    const sr = chunks[0].buffer.sampleRate;
+    const t0 = chunks[0].timestamp;
+    const last = chunks[chunks.length - 1];
+    const length = Math.max(1, Math.ceil((last.timestamp + last.duration - t0) * sr) + 1);
+    const chans = Math.max(...chunks.map((c) => c.buffer.numberOfChannels));
+    const out = new AudioBuffer({ length, numberOfChannels: chans, sampleRate: sr });
+    for (const wb of chunks) {
+      const at = Math.round((wb.timestamp - t0) * sr);
+      if (at < 0 || at >= length) continue;
+      for (let ch = 0; ch < chans; ch++) {
+        const data = wb.buffer.getChannelData(Math.min(ch, wb.buffer.numberOfChannels - 1));
+        out.copyToChannel(data.subarray(0, Math.min(data.length, length - at)), ch, at);
+      }
+    }
+    return { buffer: out, offset: Math.max(0, clip.trimIn - t0) };
+  } finally {
+    input.dispose?.();
+  }
+}
+function sliceAudio(ab, s0, s1) {
+  const len = Math.max(1, s1 - s0);
+  const out = new AudioBuffer({ length: len, numberOfChannels: ab.numberOfChannels, sampleRate: ab.sampleRate });
+  for (let c = 0; c < ab.numberOfChannels; c++) out.copyToChannel(ab.getChannelData(c).subarray(s0, s0 + len), c);
+  return out;
+}
+
+/** Джерело кадрів для експорту: точні кадри відео через Mediabunny (CanvasSink). */
+class ExportFrames {
+  constructor(MB, tl, fps, W, H) {
+    Object.assign(this, { MB, tl, fps, W, H });
+    this.dec = new Map(); // item -> decoder state
+  }
+  async open(item, frameIndex) {
+    const { MB } = this;
+    const c = item.clip;
+    const input = new MB.Input({ source: new MB.BlobSource(c.file), formats: MB.ALL_FORMATS });
+    const track = await input.getPrimaryVideoTrack();
+    if (!track) throw new Error(`У файлі «${c.name}» немає відеодоріжки`);
+    if (!(await track.canDecode())) throw new Error(`Браузер не може декодувати відео «${c.name}» (кодек ${track.codec || 'невідомий'})`);
+    let first = 0;
+    try { first = await track.getFirstTimestamp(); } catch (_) {}
+    const dw = track.displayWidth, dh = track.displayHeight;
+    const k = Math.min(1, Math.max(this.W / dw, this.H / dh));
+    const opts = { poolSize: 3 };
+    if (k < 0.999) { opts.width = Math.max(2, Math.round(dw * k)); opts.height = Math.max(2, Math.round(dh * k)); opts.fit = 'fill'; }
+    const sink = new MB.CanvasSink(track, opts);
+    const ts = [];
+    for (let i = frameIndex; ; i++) {
+      const t = i / this.fps;
+      if (t >= item.end || i > frameIndex + 1e6) break;
+      ts.push(Math.max(first, clamp(c.trimIn + (t - item.start), 0, Math.max(0, c.trimOut - 1e-4))));
+    }
+    const it = sink.canvasesAtTimestamps(ts)[Symbol.asyncIterator]();
+    const d = { input, it, last: null };
+    this.dec.set(item, d);
+    return d;
+  }
+  async layersAt(i, t) {
+    const layers = [];
+    for (const a of activeItems(this.tl, t)) {
+      const c = a.item.clip;
+      if (c.type === 'image') { layers.push({ src: c.bitmap, sw: c.w, sh: c.h, fit: c.fit, alpha: a.alpha }); continue; }
+      const d = this.dec.get(a.item) || await this.open(a.item, i);
+      const r = await d.it.next();
+      if (!r.done && r.value) d.last = r.value.canvas;
+      if (d.last) layers.push({ src: d.last, sw: d.last.width, sh: d.last.height, fit: c.fit, alpha: a.alpha });
+    }
+    for (const [item, d] of this.dec) if (t >= item.end) this.close(item, d);
+    return layers;
+  }
+  close(item, d) {
+    this.dec.delete(item);
+    d.it.return?.().catch(() => {});
+    try { d.input.dispose?.(); } catch (_) {}
+  }
+  closeAll() { for (const [item, d] of [...this.dec]) this.close(item, d); }
+}
+
+// canEncodeVideo/canEncodeAudio у Mediabunny перевіряють VideoEncoder/AudioEncoder.isConfigSupported.
+async function pickCodecs(MB, opts, notes) {
+  const { W, H, fps } = opts;
+  const vb = videoBitrate(opts, W, H);
+  const quality = new MB.Quality({ bitrate: vb });
+  const order = opts.format === 'mp4'
+    ? [['mp4', 'avc'], ['webm', 'vp9'], ['mp4', 'hevc'], ['webm', 'vp8'], ['webm', 'av1']]
+    : [['webm', 'vp9'], ['webm', 'vp8'], ['webm', 'av1'], ['mp4', 'avc']];
+  let fmt = null, vCodec = null;
+  for (const [f, c] of order) {
+    let ok = false;
+    try { ok = await MB.canEncodeVideo(c, { width: W, height: H, quality, frameRate: fps }); } catch (_) {}
+    if (ok) { fmt = f; vCodec = c; break; }
+  }
+  if (!vCodec) throw new Error('Браузер не може закодувати відео цієї роздільної здатності жодним кодеком (H.264/VP9/VP8/AV1)');
+  const names = { avc: 'H.264', hevc: 'HEVC', vp9: 'VP9', vp8: 'VP8', av1: 'AV1', aac: 'AAC', opus: 'Opus', vorbis: 'Vorbis' };
+  if (vCodec !== order[0][1]) notes.push(`${names[order[0][1]]} недоступний у цьому браузері — використано ${names[vCodec]} (${fmt.toUpperCase()}).`);
+
+  let aCodec = null;
+  const aQuality = new MB.Quality({ bitrate: opts.audioBitrate * 1000 });
+  const canA = async (c) => { try { return await MB.canEncodeAudio(c, { numberOfChannels: 2, sampleRate: 48000, quality: aQuality }); } catch (_) { return false; } };
+  if (opts.audio) {
+    if (fmt === 'mp4') {
+      if (await canA('aac')) aCodec = 'aac';
+      else {
+        try {
+          const { registerAacEncoder } = await import('@mediabunny/aac-encoder');
+          registerAacEncoder();
+          if (await canA('aac')) { aCodec = 'aac'; notes.push('AAC закодовано програмним кодером (WASM), бо браузер не має вбудованого.'); }
+        } catch (e) { console.warn('AAC encoder extension', e); }
+        if (!aCodec && await canA('opus')) { aCodec = 'opus'; notes.push('AAC недоступний — звук закодовано в Opus усередині MP4.'); }
+      }
+    } else {
+      if (await canA('opus')) aCodec = 'opus';
+      else if (await canA('vorbis')) aCodec = 'vorbis';
+    }
+    if (!aCodec) notes.push('Жоден аудіокодек недоступний — відео експортовано без звуку.');
+  }
+  return { fmt, vCodec, aCodec, quality, aQuality, label: `${names[vCodec]}${aCodec ? ' + ' + names[aCodec] : ''}` };
+}
+
+async function exportOffline(opts, signal, notes) {
+  const MB = await loadMediabunny();
+  const { W, H, fps, st } = opts;
+  const tl = getTimeline();
+  const total = tl.total;
+  const N = Math.max(1, Math.round(total * fps));
+  const codecs = await pickCodecs(MB, opts, notes);
+  const abortErr = () => new DOMException('aborted', 'AbortError');
+
+  // 1) Звук
+  let mixed = null;
+  if (codecs.aCodec) {
+    progressUI('Мікшування звуку…', 0.01);
+    mixed = await mixAudio(MB, tl, total, signal, notes, (f) => progressUI('Мікшування звуку…', 0.01 + f * 0.03));
+    if (!mixed) notes.push('У послідовності немає звуку — аудіодоріжку не додано.');
+  }
+  if (signal.aborted) throw abortErr();
+
+  // 2) Вихідний файл
+  const output = new MB.Output({
+    format: codecs.fmt === 'mp4' ? new MB.Mp4OutputFormat({ fastStart: 'in-memory' }) : new MB.WebMOutputFormat(),
+    target: new MB.BufferTarget(),
+  });
+  const vSrc = new MB.VideoSampleSource({ codec: codecs.vCodec, quality: codecs.quality, keyFrameInterval: 2, sizeChangeBehavior: 'deny' });
+  output.addVideoTrack(vSrc, { frameRate: fps });
+  let aSrc = null;
+  if (mixed) {
+    aSrc = new MB.AudioBufferSource({ codec: codecs.aCodec, quality: codecs.aQuality });
+    output.addAudioTrack(aSrc);
+  }
+  await output.start();
+
+  // 3) Кадр за кадром
+  const canvas = new OffscreenCanvas(W, H);
+  const ctx = canvas.getContext('2d', { alpha: false });
+  const frames = new ExportFrames(MB, tl, fps, W, H);
+  const SR = mixed ? mixed.sampleRate : 48000;
+  let audioPos = 0;  // у семплах
+  const pushAudioUntil = async (sec) => {
+    if (!mixed) return;
+    const target = Math.min(mixed.length, Math.round(sec * SR));
+    while (audioPos < target) {
+      const end = Math.min(target, audioPos + SR);
+      await aSrc.add(sliceAudio(mixed, audioPos, end));
+      audioPos = end;
+    }
+  };
+  const t0 = performance.now();
+  try {
+    for (let i = 0; i < N; i++) {
+      if (signal.aborted) throw abortErr();
+      const t = i / fps;
+      const layers = await frames.layersAt(i, t);
+      renderFrame(ctx, t, st, W, H, { layers, total, clipProgress: clipProgressAt(tl, t) });
+      const frame = new VideoFrame(canvas, { timestamp: Math.round(t * 1e6), duration: Math.round(1e6 / fps), alpha: 'discard' });
+      const sample = new MB.VideoSample(frame, { timestamp: t, duration: 1 / fps });
+      try { await vSrc.add(sample); } finally { sample.close(); frame.close(); }
+      await pushAudioUntil(t + 1 / fps + 0.5);
+      if (i % 3 === 0 || i === N - 1) {
+        const el = (performance.now() - t0) / 1000;
+        const done = (i + 1) / N;
+        const eta = done > 0.02 ? el / done * (1 - done) : NaN;
+        progressUI('Рендер кадрів…', 0.04 + done * 0.94, {
+          frames: `Кадр ${i + 1} / ${N}`,
+          eta: Number.isFinite(eta) ? `залишилось ≈ ${fmtTime(eta)}` : '',
+        });
+      }
+    }
+    await pushAudioUntil(total + 1);
+    vSrc.close();
+    aSrc?.close();
+    progressUI('Фіналізація файлу…', 0.99, { eta: '' });
+    await output.finalize();
+  } catch (e) {
+    frames.closeAll();
+    try { await output.cancel(); } catch (_) {}
+    throw e;
+  }
+  frames.closeAll();
+  const mime = codecs.fmt === 'mp4' ? 'video/mp4' : 'video/webm';
+  progressUI('Готово', 1);
+  return { blob: new Blob([output.target.buffer], { type: mime }), ext: codecs.fmt, codecs: codecs.label };
+}
+
+/** WebM від MediaRecorder не має тривалості й індексу — перепаковуємо без перекодування. */
+async function remuxWebm(blob) {
+  try {
+    const MB = await loadMediabunny();
+    const input = new MB.Input({ source: new MB.BlobSource(blob), formats: MB.ALL_FORMATS });
+    const output = new MB.Output({ format: new MB.WebMOutputFormat(), target: new MB.BufferTarget() });
+    const conv = await MB.Conversion.init({ input, output });
+    if (!conv.isValid) return blob;
+    await conv.execute();
+    return new Blob([output.target.buffer], { type: 'video/webm' });
+  } catch (e) {
+    console.warn('Не вдалося перепакувати WebM', e);
+    return blob;
+  }
+}
+
+/** Запасний шлях: запис у реальному часі через captureStream + MediaRecorder. */
+async function exportRealtime(opts, signal, notes) {
+  if (typeof MediaRecorder === 'undefined') throw new Error('Цей браузер не підтримує ні WebCodecs, ні MediaRecorder');
+  const { W, H, fps, st } = opts;
+  $('#exRealtimeNote').hidden = false;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  canvas.style.cssText = 'position:fixed;left:-99999px;top:0;width:2px;height:2px;';
+  document.body.append(canvas);
+  const ctx = canvas.getContext('2d');
+  const AC = window.AudioContext || window.webkitAudioContext;
+  const actx = new AC({ sampleRate: 48000 });
+  await actx.resume();
+  const dest = actx.createMediaStreamDestination();
+  const rig = { ctx: actx, out: dest };
+  const rp = new Player({ getAudio: () => rig });
+  const tl = getTimeline();
+  const total = tl.total;
+  exportJob.realtimeBusy = true;
+  try {
+    // Підготувати елементи
+    progressUI('Підготовка медіа…', 0);
+    for (const it of tl.items) if (it.clip.type === 'video') {
+      const e = rp.el(it.clip);
+      if (e.v.readyState < 3) await once(e.v, 'canplay').catch(() => {});
+    }
+    rp.update(tl, 0, false);
+    await new Promise((r) => setTimeout(r, 300));
+    const tracks = [...canvas.captureStream(fps).getVideoTracks()];
+    if (opts.audio) tracks.push(...dest.stream.getAudioTracks());
+    const stream = new MediaStream(tracks);
+    const prefs = opts.format === 'mp4'
+      ? ['video/mp4;codecs=avc1.640028,mp4a.40.2', 'video/mp4;codecs=avc1,mp4a', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm']
+      : ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'];
+    const mime = prefs.find((m) => MediaRecorder.isTypeSupported(m)) || '';
+    if (mime && !mime.startsWith(opts.format === 'mp4' ? 'video/mp4' : 'video/webm')) notes.push(`Формат ${opts.format.toUpperCase()} не підтримується MediaRecorder — збережено як ${mime.split(';')[0]}.`);
+    const rec = new MediaRecorder(stream, { mimeType: mime || undefined, videoBitsPerSecond: videoBitrate(opts, W, H), audioBitsPerSecond: opts.audioBitrate * 1000 });
+    const chunks = [];
+    rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+    const stopped = new Promise((r) => { rec.onstop = r; });
+    renderFrame(ctx, 0, st, W, H, { layers: rp.layers(tl, 0), total, clipProgress: 0 });
+    rec.start(500);
+    const wall0 = performance.now();
+    await new Promise((resolve, reject) => {
+      const tick = () => {
+        if (signal.aborted) { reject(new DOMException('aborted', 'AbortError')); return; }
+        const t = Math.min(total, (performance.now() - wall0) / 1000);
+        rp.update(tl, t, t < total);
+        renderFrame(ctx, t, st, W, H, { layers: rp.layers(tl, t), total, clipProgress: clipProgressAt(tl, t) });
+        progressUI('Запис у реальному часі…', t / total, { frames: `${fmtTime(t)} / ${fmtTime(total)}`, eta: `залишилось ≈ ${fmtTime(total - t)}` });
+        if (t >= total) resolve(); else requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }).finally(() => { if (rec.state !== 'inactive') rec.stop(); });
+    await stopped;
+    const type = (mime || 'video/webm').split(';')[0];
+    let blob = new Blob(chunks, { type });
+    if (type === 'video/webm') blob = await remuxWebm(blob);
+    return { blob, ext: type.includes('mp4') ? 'mp4' : 'webm', codecs: mime || 'MediaRecorder' };
+  } finally {
+    rp.destroy();
+    canvas.remove();
+    actx.close().catch(() => {});
+    if (exportJob) exportJob.realtimeBusy = false;
+  }
+}
+
+// ============================== 17. Старт ==============================
+async function init() {
+  loadState();
+  bindControls();
+  setupClipDnD();
+  setupFileDrop();
+  setupExportDialog();
+  buildAvatarUI();
+  renderClipList();
+  renderMusic();
+  refreshControls();
+  layoutPreview();
+  new ResizeObserver(layoutPreview).observe($('#stageInner'));
+  window.addEventListener('resize', layoutPreview);
+  document.fonts?.addEventListener?.('loadingdone', () => { clearTextCaches(); refreshAvatarPreviews(); requestRender(); });
+  requestAnimationFrame(loop);
+  await ensureFonts();
+  await loadAllAvatars();
+  refreshAvatarPreviews();
+  requestRender();
+  // Mediabunny підвантажується у фоні, щоб експорт стартував швидше
+  if (hasWebCodecs()) loadMediabunny().catch(() => {});
+}
+
+// Невеликий API для автоматичних перевірок у консолі/тестах
+window.ReelsStudio = {
+  get state() { return state; },
+  renderFrame, formatCount, randomizeStats, nickError, Nick, applyReferencePreset, addFiles, getTimeline,
+  ensureFonts, loadAllAvatars, seek, play, pause, requestRender,
+  setState(patch) { state = sanitizeState(deepMerge(DEFAULT_STATE, { ...state, ...patch })); afterFrameChange(); onStateChange(); },
+  renderTo(canvas, t, opts = {}) {
+    const tl = getTimeline();
+    renderFrame(canvas.getContext('2d'), t, state, canvas.width, canvas.height, { layers: opts.layers || player.layers(tl, t), total: opts.total ?? displayTotal(), clipProgress: clipProgressAt(tl, t) });
+  },
+  runExport, get lastExport() { return lastExport; }, get exportBusy() { return !!exportJob; }, get clips() { return clips; },
+  invalidate() { invalidateTimeline(); renderClipList(); requestRender(); },
+};
+
+init();
+</script>
+</body>
+</html>
