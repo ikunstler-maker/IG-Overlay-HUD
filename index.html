@@ -307,6 +307,17 @@ input[type=color] { width: 44px; height: 30px; padding: 2px; border: 1px solid v
 @media (max-width: 900px) {
   .layout { grid-template-columns: minmax(0, 1fr); }
 }
+/* ---------- Сторіз: панель слайда (час публікації й коментарі) ---------- */
+.story-panel { display: flex; flex-direction: column; gap: 6px; padding: 7px 8px 9px; border-top: 1px solid var(--line); }
+.posted-row { display: flex; align-items: center; gap: 6px; }
+.posted-row .lbl { font-size: 12px; color: var(--muted); flex: none; }
+.posted-row .num { width: 58px; flex: none; }
+.posted-row select { flex: 1; min-width: 0; }
+.ago-preview { flex: none; font-size: 11.5px; color: var(--faint); padding: 2px 6px; border: 1px solid var(--line); border-radius: 6px; white-space: nowrap; }
+.cmt-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cmt-head .icon-btn { width: 26px; height: 26px; flex: none; }
+.story-panel .comments-list .hint { font-size: 11.5px; }
+.story-panel .cmt-add { align-self: flex-start; }
 </style>
 </head>
 <body>
@@ -805,7 +816,7 @@ const UI_STRINGS = {
     'music.volume': 'Music volume', 'music.offset': 'Start track at', 'music.added': 'Background music: {name}',
     'music.cantPlay': 'the browser cannot play this audio file', 'music.error': 'Music: {err}',
     'unit.s': 's', 'fmt.sec': '{v} s',
-    'unit.sLong': 'seconds', 'unit.mLong': 'minutes', 'unit.hLong': 'hours', 'unit.dLong': 'days', 'unit.wLong': 'weeks', 'unit.yLong': 'years',
+    'unit.sLong': 'Seconds', 'unit.mLong': 'Minutes', 'unit.hLong': 'Hours', 'unit.dLong': 'Days', 'unit.wLong': 'Weeks', 'unit.yLong': 'Years',
     'stories.photoDur': 'Photo slide length', 'stories.dummyBefore': 'Empty segments before', 'stories.dummyAfter': 'Empty segments after',
     'stories.dummyHint': 'Extra progress segments that only make the story look longer.',
     'stories.reply': 'Reply field', 'stories.replyText': 'Field text', 'stories.replyPh': 'Empty: «Send message» in the video language',
@@ -857,8 +868,10 @@ const UI_STRINGS = {
     'clip.start': 'Start, s', 'clip.end': 'End, s', 'clip.volume': 'Volume', 'clip.mute': 'Mute', 'clip.duration': 'Length, s',
     'clip.fit': 'Fit', 'clip.cover': 'Cover: fill the frame', 'clip.contain': 'Contain: blurred backdrop',
     'slide.posted': 'Posted', 'slide.durHint': 'empty = default', 'slide.audio': 'Audio line in the header', 'slide.audioRand': 'Random track',
-    'slide.comments': 'Comments', 'slide.comment': 'Comment', 'slide.cmtAdd': '+ Add', 'slide.cmtRandAll': 'Randomize all comments',
-    'slide.cmtRand': 'Random comment', 'slide.cmtDel': 'Remove',
+    'slide.comments': 'Comments', 'slide.comment': 'Comment', 'slide.cmtAdd': '+ Add comment', 'slide.cmtRandAll': 'Randomize all comments',
+    'slide.cmtRand': 'Random comment', 'slide.cmtDel': 'Remove comment',
+    'slide.showComments': 'Show comments', 'slide.cmtPh': 'Comment text', 'slide.cmtEmpty': 'No comments yet.',
+    'slide.postedValue': 'How long ago it was posted', 'slide.postedUnit': 'Time unit', 'slide.agoPreview': 'How it looks in the video',
     'ex.title': 'Export video', 'ex.format': 'Format', 'ex.res': 'Resolution', 'ex.custom': 'Custom…', 'ex.wh': 'Width × height',
     'ex.resHint': 'The resolution also sets the preview aspect, so the frame always matches the export.', 'ex.fps': 'Frame rate',
     'ex.quality': 'Video quality', 'ex.low': 'Low', 'ex.medium': 'Medium', 'ex.high': 'High', 'ex.manual': 'Manual bitrate', 'ex.bitrate': 'Bitrate',
@@ -913,7 +926,7 @@ const UI_STRINGS = {
     'music.volume': 'Гучність музики', 'music.offset': 'Почати трек з', 'music.added': 'Фонова музика: {name}',
     'music.cantPlay': 'браузер не може відтворити цей аудіофайл', 'music.error': 'Музика: {err}',
     'unit.s': 'с', 'fmt.sec': '{v} с',
-    'unit.sLong': 'секунди', 'unit.mLong': 'хвилини', 'unit.hLong': 'години', 'unit.dLong': 'дні', 'unit.wLong': 'тижні', 'unit.yLong': 'роки',
+    'unit.sLong': 'Секунди', 'unit.mLong': 'Хвилини', 'unit.hLong': 'Години', 'unit.dLong': 'Дні', 'unit.wLong': 'Тижні', 'unit.yLong': 'Роки',
     'stories.photoDur': 'Тривалість фото-слайда', 'stories.dummyBefore': 'Пусті сегменти до', 'stories.dummyAfter': 'Пусті сегменти після',
     'stories.dummyHint': 'Додаткові сегменти прогресу, які лише створюють вигляд довшої сторіз.',
     'stories.reply': 'Поле відповіді', 'stories.replyText': 'Текст поля', 'stories.replyPh': 'Порожньо — «Send message» мовою відео',
@@ -965,8 +978,10 @@ const UI_STRINGS = {
     'clip.start': 'Початок, с', 'clip.end': 'Кінець, с', 'clip.volume': 'Гучність', 'clip.mute': 'Без звуку', 'clip.duration': 'Тривалість, с',
     'clip.fit': 'Вписування', 'clip.cover': 'Cover — заповнити кадр', 'clip.contain': 'Contain — розмитий фон',
     'slide.posted': 'Опубліковано', 'slide.durHint': 'порожньо — за замовчуванням', 'slide.audio': 'Рядок треку в шапці', 'slide.audioRand': 'Випадковий трек',
-    'slide.comments': 'Коментарі', 'slide.comment': 'Коментар', 'slide.cmtAdd': '+ Додати', 'slide.cmtRandAll': 'Перегенерувати всі коментарі',
-    'slide.cmtRand': 'Випадковий коментар', 'slide.cmtDel': 'Прибрати',
+    'slide.comments': 'Коментарі', 'slide.comment': 'Коментар', 'slide.cmtAdd': '+ Додати коментар', 'slide.cmtRandAll': 'Перегенерувати всі коментарі',
+    'slide.cmtRand': 'Випадковий коментар', 'slide.cmtDel': 'Видалити коментар',
+    'slide.showComments': 'Показувати коментарі', 'slide.cmtPh': 'Текст коментаря', 'slide.cmtEmpty': 'Коментарів поки немає.',
+    'slide.postedValue': 'Скільки часу тому опубліковано', 'slide.postedUnit': 'Одиниця часу', 'slide.agoPreview': 'Як це виглядає у відео',
     'ex.title': 'Експорт відео', 'ex.format': 'Формат', 'ex.res': 'Роздільна здатність', 'ex.custom': 'Власна…', 'ex.wh': 'Ширина × висота',
     'ex.resHint': 'Роздільна здатність задає й пропорції прев\'ю — кадр завжди збігається з експортом.', 'ex.fps': 'Частота кадрів',
     'ex.quality': 'Якість відео', 'ex.low': 'Низька', 'ex.medium': 'Середня', 'ex.high': 'Висока', 'ex.manual': 'Бітрейт вручну', 'ex.bitrate': 'Бітрейт',
@@ -1025,8 +1040,8 @@ function applyStaticI18n(root = document) {
 
 // ===================== 3. Мови інтерфейсу Instagram у кадрі =====================
 // Рядки, які показує офіційний застосунок Instagram (iOS) різними мовами.
-// s — написи, time — компактний час у шапці сторіз ({n} — число), num — формат лічильників,
-// comments — природні короткі коментарі для випадкових реакцій.
+// s — написи, time — компактний час у шапці сторіз ({n} — число), num — формат лічильників.
+// Коментарі для бульбашок — у COMMENT_BANK.
 const LOCALES = {
   en: {
     name: 'English', dir: 'ltr',
@@ -1037,8 +1052,6 @@ const LOCALES = {
     },
     time: { s: '{n}s', m: '{n}m', h: '{n}h', d: '{n}d', w: '{n}w', y: '{n}y' },
     num: { intl: 'en-US', k: '{n}K', m: '{n}M', b: '{n}B' },
-    comments: ['wow', 'so cool', 'omg', 'insane', 'love this', 'this is fire', 'so good', 'crazy', 'perfect', 'need this', 'obsessed', 'iconic',
-      'the vibes', 'goals', 'no way', 'stunning', 'this is everything', 'so cute', 'lol', 'yesss', 'where is this?', 'legend', 'too good', 'can’t stop watching'],
   },
   uk: {
     name: 'Українська', dir: 'ltr',
@@ -1049,10 +1062,6 @@ const LOCALES = {
     },
     time: { s: '{n} с', m: '{n} хв', h: '{n} год', d: '{n} д', w: '{n} тиж.', y: '{n} р.' },
     num: { intl: 'uk-UA', k: '{n} тис.', m: '{n} млн', b: '{n} млрд' },
-    comments: ['Вау, це шедевр 😍', 'ахаха я плачу 😂😂', 'де це??', 'Неймовірно красиво', 'хочу так само 🔥', 'це ж буквально я 😭',
-      'Звук топ, як називається?', 'Обожнюю 💛', 'ну це база', 'ору 🤣', 'Чекаю продовження!', 'Як ти це зробив?', 'Мурахи по шкірі',
-      'Найкраще, що я сьогодні бачила', 'лайк не глядячи 👍', 'О, це щось новеньке', 'Атмосферно ✨', 'Скинь рецепт, будь ласка 🙏',
-      'Я в захваті!', 'Це просто вогонь 🔥🔥🔥', 'хто теж дивиться о 3 ночі? 🌙', 'Переглянула разів десять 😅', 'Зберегла собі 📌', 'тегаю подругу, бо це ми 😂'],
   },
   ru: {
     name: 'Русский', dir: 'ltr',
@@ -1063,9 +1072,6 @@ const LOCALES = {
     },
     time: { s: '{n} с', m: '{n} мин', h: '{n} ч', d: '{n} дн.', w: '{n} нед.', y: '{n} г.' },
     num: { intl: 'ru-RU', k: '{n} тыс.', m: '{n} млн', b: '{n} млрд' },
-    comments: ['ахахах это я 😂', 'огонь 🔥🔥', 'ну это шедевр', 'жиза', 'кайф 😍', 'сохранила себе', 'я не могу 😭😭', 'вау', 'красота какая',
-      'лучшее что я видел сегодня', 'пересмотрел раз 10 😅', 'ору 🤣', 'где это?', 'хочу так же', 'атмосферно ✨', 'топ 👍', 'ну всё, я влюбилась 🥹',
-      'это слишком хорошо', 'мурашки 😮', 'бесподобно', 'ахах в точку', 'дай название трека пж', 'залипла надолго', 'ну красота же ❤️'],
   },
   es: {
     name: 'Español', dir: 'ltr',
@@ -1077,10 +1083,6 @@ const LOCALES = {
     time: { s: '{n} s', m: '{n} min', h: '{n} h', d: '{n} d', w: '{n} sem', y: '{n} a' },
     // Meta групує й чотиризначні числа: «1.740»
     num: { intl: 'es-ES', group: 'always', k: '{n} mil', m: '{n} M', b: '{n} mil M' },
-    comments: ['jajaja no puedo 😂', 'me encantaaa 😍', 'brutal 🔥', 'nooo qué lindo', 'jajaja literal yo', 'esto es otro nivel', 'qué bonito 🥹',
-      'necesito más de esto', 'ay me muero 😂😂', 'increíble!!', 'dónde es esto?? 😍', 'qué arte 👏', 'no me lo esperaba jaja', 'lo amé ❤️',
-      'vibras 10/10', 'por qué es tan bueno esto 😭', 'te pasaste 🔥🔥', 'jajajaja el final', 'qué envidia sana', 'está buenísimo',
-      'uff qué nivel', 'me hiciste el día ✨', 'otra vez!!', 'qué buena onda'],
   },
   hi: {
     name: 'हिन्दी', dir: 'ltr',
@@ -1092,10 +1094,6 @@ const LOCALES = {
     time: { s: '{n} से॰', m: '{n} मि॰', h: '{n} घं॰', d: '{n} दिन', w: '{n} सप्ताह', y: '{n} वर्ष' },
     // Гінді рахує в лаках і крорах: 123 456 → «1.2 लाख», 12 345 678 → «1.2 करोड़»
     num: { intl: 'hi-IN-u-nu-latn', scheme: 'indian', k: '{n} हज़ार', lakh: '{n} लाख', crore: '{n} करोड़' },
-    comments: ['वाह क्या बात है 🔥', 'बहुत बढ़िया 😍', 'एकदम मस्त', 'कमाल कर दिया यार 👏', 'हाहाहा 😂😂', 'ये तो गज़ब है', 'मज़ा आ गया 😄',
-      'सच में बहुत सुंदर ❤️', 'कहाँ है ये जगह?', 'अगला पार्ट कब आएगा?', 'दिल खुश हो गया 🥹', 'लाजवाब 🙌', 'एक नंबर 💯', 'भाई तू तो छा गया',
-      'क्या बात 😍', 'बहुत प्यारा है', 'Kya baat hai 🔥', 'Mast hai yaar 😂', 'Op bhai 💯', 'Ekdum jhakaas 😎', 'Bahut badhiya ❤️',
-      'Haha sahi hai 😂', 'Kitna cute 🥺', 'Next part pls 🙏'],
   },
   ar: {
     name: 'العربية', dir: 'rtl',
@@ -1107,9 +1105,6 @@ const LOCALES = {
     time: { s: '{n} ث', m: '{n} د', h: '{n} س', d: '{n} ي', w: '{n} أ', y: '{n} سنة' },
     // Instagram арабською показує східноарабські цифри (٠–٩) і роздільники ٫ ٬
     num: { intl: 'ar-EG-u-nu-arab', k: '{n} ألف', m: '{n} مليون', b: '{n} مليار' },
-    comments: ['يا سلام 😍', 'رووعة 🔥🔥', 'تجنن والله', 'ما شاء الله تبارك الله ✨', 'هههههه مستحيل 😂', 'وين هذا المكان؟', 'حلو مرة 👌', 'قمر 🌙',
-      'ياااه وحشتني هالأجواء', 'أحلى ستوري اليوم', 'جامد أوي 🔥', 'عسل 🍯', 'وينك؟ صارلك زمان 👀', 'خطيييير', 'ههههه ميتة من الضحك 😂😂',
-      'إبداع 👏', 'بدي جرب هيك 😍', 'تحفة ❤️', 'شو هالجمال', 'والله اشتقنا 🥺', 'أبي أروح معك المرة الجاية', 'يا حلاوة 😍', 'لا لا كثير حلو 🔥', '💯💯'],
   },
 };
 
@@ -1159,15 +1154,181 @@ function formatAgo(value, unit, code = 'en') {
   const v = Math.max(0, Math.floor(Number(value) || 0));
   return (L.time[unit] || L.time.h).replace('{n}', nf(L.num.intl, 0).format(v));
 }
+// Банк коментарів для бульбашок сторіз, окремо для кожної мови відео.
+// joy — радість і захват (основна частина), wow — бурхливе здивування, doubt — сумнів,
+// share — прохання поділитися (місце, пісня, рецепт…). Емодзі й «недоліки» додає randomComment().
+const COMMENT_BANK = {
+  en: {
+    joy: ["love this so much", "this made my day", "obsessed", "so beautiful", "yesss queen", "the vibes are immaculate",
+      "absolutely stunning", "this is everything", "so happy for you", "living for this", "perfection", "you look amazing",
+      "best thing I've seen today", "can't stop smiling", "love love love", "goals honestly", "so cute I can't",
+      "this is so wholesome", "iconic", "pure happiness", "what a vibe", "my favorite story today", "literally glowing",
+      "so proud of you", "major mood", "this energy tho", "beautiful shot", "ugh I love it", "heart = full", "never gets old",
+      "such good vibes", "ok this is adorable", "the colors!!", "love your style", "chef's kiss", "this is art",
+      "you never miss", "smiling like an idiot rn", "so dreamy", "gorgeous", "goosebumps honestly", "this is the cutest thing",
+      "omg I love you", "I needed this today", "10/10 no notes"],
+    wow: ["WAIT WHAT", "no way this is real", "HOW did you do that", "I'm screaming", "omg omg omg", "are you kidding me",
+      "I did NOT expect that", "my jaw is on the floor", "insane!!", "stop it right now", "whaaat", "this can't be real",
+      "I literally gasped", "bro what", "SHUT UP"],
+    doubt: ["is this edited?", "wait is this real or AI", "hmm not sure about this one", "ok but how tho", "that can't be legit",
+      "am I the only one confused?", "idk about this", "is this a filter?", "why does this look fake lol", "really?"],
+    share: ["where is this place?", "send me the location pls", "what's the song?", "please share the recipe", "drop the link!",
+      "which camera do you use?", "tag me next time", "share your preset pls", "where did you get that outfit?",
+      "tell me everything", "DM me the details", "can you post more of this?", "need the name of this place",
+      "what app did you edit this with?"],
+  },
+  uk: {
+    joy: ["обожнюю це", "неймовірно красиво", "це просто вогонь", "ти найкраща", "настрій на весь день", "як же гарно",
+      "я в захваті", "це шедевр", "мурахи по шкірі", "ну це любов", "просто космос", "яка ж краса", "серденько тане",
+      "атмосферно до неможливості", "дуже-дуже круто", "тепло на душі від цього", "ти неймовірна", "найкраща сторіз дня",
+      "посміхаюсь як дурна", "це щастя", "хочу туди", "настрій супер", "красуня", "ідеально", "дивлюсь уже вдесяте",
+      "ну це база", "клас!", "топчик", "шикарно", "це так мило", "зберегла собі", "радію за тебе", "вайб топ",
+      "обіймаю тебе", "ти світишся", "круто-круто-круто", "це щось неймовірне", "дуже стильно", "аж настрій піднявся",
+      "найкращий кадр", "лайк не глядячи", "яка ти гарна", "це любов з першого погляду", "просто вау", "ніжність"],
+    wow: ["ЩО?!", "ну ні, не може бути", "ЯК ти це зробила?", "я в шоці", "оце так!", "та ладно!", "не вірю своїм очам",
+      "щелепа на підлозі", "АААААА", "ти серйозно?!", "божевілля", "я кричу", "вау просто вау", "оце поворот", "ого-го"],
+    doubt: ["це фотошоп?", "стоп, це реально?", "щось я не впевнена", "хм, а як це?", "це фільтр чи ні?",
+      "не вірю, що це без монтажу", "щось тут не так", "а це точно ти?", "я одна нічого не зрозуміла?", "виглядає як ШІ"],
+    share: ["де це?", "скинь локацію", "що за пісня?", "поділись рецептом, будь ласка", "скинь посилання!", "на що знімаєш?",
+      "наступного разу клич мене", "поділись пресетом", "де купила таку сукню?", "розкажи все в особисті",
+      "хочу більше такого контенту", "як називається це місце?", "в якій програмі монтуєш?", "напиши, будь ласка, деталі"],
+  },
+  ru: {
+    joy: ["обожаю это", "невероятно красиво", "это просто огонь", "ты лучшая", "настроение на весь день", "как же красиво",
+      "я в восторге", "это шедевр", "мурашки", "ну это любовь", "просто космос", "какая красота", "сердечко тает",
+      "атмосферно", "очень-очень круто", "тепло на душе", "ты невероятная", "лучшая сторис дня", "улыбаюсь как дурочка",
+      "это счастье", "хочу туда", "кайф", "красотка", "идеально", "пересмотрела раз десять", "ну это база", "класс!", "топ",
+      "шикарно", "это так мило", "сохранила себе", "радуюсь за тебя", "вайб топ", "обнимаю", "ты светишься",
+      "круто-круто-круто", "нереально круто", "очень стильно", "аж настроение поднялось", "лучший кадр", "жиза",
+      "лайк не глядя", "какая ты красивая", "любовь с первого взгляда", "просто вау"],
+    wow: ["ЧТО?!", "не может быть", "КАК ты это сделала?", "я в шоке", "вот это да!", "да ладно!", "не верю своим глазам",
+      "челюсть на полу", "АААААА", "ты серьёзно?!", "безумие", "я ору", "вау просто вау", "вот это поворот", "офигеть"],
+    doubt: ["это фотошоп?", "стоп, это реально?", "что-то я не уверена", "хм, а как это?", "это фильтр?",
+      "не верю, что без монтажа", "что-то тут не так", "а это точно ты?", "я одна ничего не поняла?", "выглядит как нейросеть"],
+    share: ["где это?", "скинь локацию", "что за песня?", "поделись рецептом, пожалуйста", "скинь ссылку!", "на что снимаешь?",
+      "в следующий раз зови меня", "поделись пресетом", "где купила такое платье?", "расскажи всё в личке",
+      "хочу больше такого", "как называется это место?", "в какой программе монтируешь?", "напиши подробности плиз"],
+  },
+  es: {
+    joy: ["me encanta", "qué bonito", "esto es arte", "me alegraste el día", "brutal", "qué maravilla", "te amo", "qué guapa",
+      "precioso", "está increíble", "lo amé", "vibras 10/10", "qué belleza", "me derrito", "lo más lindo que vi hoy",
+      "qué felicidad", "sonriendo como tonta", "perfecto", "qué envidia sana", "te quedó genial", "estás divina",
+      "esto me da paz", "top", "qué nivel", "buenísimo", "me muero de amor", "qué ternura", "mi story favorita",
+      "eres lo más", "qué arte tienes", "me hiciste el día", "goals total", "qué lindo momento", "estoy enamorada de esto",
+      "impresionante", "qué rico se ve", "eres un sol", "qué buena onda", "hermoso", "qué estilo", "lo necesitaba",
+      "orgullosa de ti", "qué cosa más linda", "amo todo", "uff qué bonito"],
+    wow: ["¿¡QUÉ!?", "no puede ser", "¿CÓMO hiciste eso?", "estoy en shock", "no me lo esperaba", "¿es en serio?",
+      "me quedé con la boca abierta", "AAAAA", "qué locura", "no lo puedo creer", "me muero", "flipando", "whaaat",
+      "ni en mis sueños", "pero qué es esto"],
+    doubt: ["¿esto es editado?", "¿es real o IA?", "mmm no sé", "pero ¿cómo?", "¿es un filtro?", "no me lo creo",
+      "algo no cuadra", "¿seguro que eres tú?", "¿soy la única que no entendió?", "parece falso jaja"],
+    share: ["¿dónde es esto?", "pásame la ubicación", "¿cómo se llama la canción?", "comparte la receta porfa", "¡pasa el link!",
+      "¿con qué cámara grabas?", "la próxima me invitas", "comparte el preset", "¿dónde compraste ese vestido?",
+      "cuéntamelo todo por DM", "sube más de esto", "¿cómo se llama el lugar?", "¿con qué app editas?", "mándame los detalles"],
+  },
+  hi: {
+    joy: ["बहुत सुंदर", "दिल खुश हो गया", "क्या बात है", "एकदम मस्त", "कमाल कर दिया", "मज़ा आ गया", "लाजवाब", "बहुत प्यारा",
+      "शानदार", "एक नंबर", "सच में बहुत अच्छा", "मन खुश हो गया", "बहुत बढ़िया", "वाह क्या नज़ारा है", "तुम कमाल हो",
+      "आज की सबसे अच्छी स्टोरी", "देखकर मुस्कान आ गई", "बिल्कुल परफेक्ट", "बहुत खूबसूरत", "ये तो जादू है", "कितना प्यारा",
+      "सुपर", "दिल जीत लिया", "गज़ब", "बहुत क्यूट", "हमेशा की तरह बेहतरीन", "बहुत गर्व है तुम पर", "Kya baat hai",
+      "Mast hai yaar", "Ekdum jhakaas", "Bahut badhiya", "Kitna cute", "Dil khush ho gaya", "Superb yaar", "Too good bhai",
+      "Ek number", "Bahut sundar", "Lovely", "Waah", "Mazaa aa gaya", "Bohot pyaara", "Kamaal hai", "Op bhai", "Jhakaas",
+      "Love it yaar"],
+    wow: ["क्या?!", "ये कैसे हुआ?", "यकीन नहीं हो रहा", "मैं तो हैरान हूँ", "अरे वाह!", "सच में?!", "होश उड़ गए", "OMG",
+      "Kya?!", "Ye kaise kiya?", "Pagal kar diya", "Unbelievable yaar", "Mind blown", "Arre baap re", "Bhai ye kya tha"],
+    doubt: ["ये एडिटेड है क्या?", "ये सच है या AI?", "हम्म पता नहीं", "पर ये कैसे?", "ये फ़िल्टर है?", "यकीन नहीं होता",
+      "कुछ गड़बड़ है", "Ye real hai kya?", "Edited lag raha hai", "Sach mein?"],
+    share: ["ये कहाँ है?", "लोकेशन भेजो", "ये कौन सा गाना है?", "रेसिपी शेयर करो प्लीज़", "लिंक भेजो!", "कौन सा कैमरा है?",
+      "अगली बार मुझे भी ले चलना", "प्रीसेट शेयर करो", "ये ड्रेस कहाँ से ली?", "DM में सब बताओ", "ऐसा और पोस्ट करो",
+      "Location bhejo", "Song ka naam?", "Recipe share karo pls"],
+  },
+  ar: {
+    joy: ["يا سلام", "رووعة", "تجنن والله", "ما شاء الله", "حلو مرة", "قمر", "أحلى ستوري اليوم", "عسل", "إبداع", "تحفة",
+      "شو هالجمال", "يا حلاوة", "جميل جدًا", "فرحتني", "روعة روعة", "الله على الجمال", "منور", "حبيته كثير", "خيال",
+      "جامد أوي", "حبيت الأجواء", "يجنن", "بالتوفيق دايمًا", "أنتِ رائعة", "قلبي ذاب", "من أجمل ما شفت", "ابتسمت من قلبي",
+      "كمية جمال", "مبدعة كالعادة", "فخورة فيك", "تبارك الله", "ولا أروع", "حلو كتير", "أسطورة", "يا عيني", "كيوت مرة",
+      "الله يسعدك", "أحلى شي", "نورتي", "جمال مو طبيعي", "تهبل", "ذوق رفيع", "حبيييت", "أحسن ستوري", "دمك خفيف"],
+    wow: ["إيش هذا؟!", "مستحيل", "كيف سويتها؟!", "أنا مصدومة", "يا الله!", "جد؟!", "ما توقعت أبدًا", "فمي مفتوح",
+      "لا لا لا", "جنون", "صدق؟", "واااو", "شي ما يتصدق", "يا نهار أبيض", "صدمة"],
+    doubt: ["هذا معدل؟", "حقيقي ولا ذكاء اصطناعي؟", "مش متأكدة", "بس كيف؟", "هذا فلتر؟", "ما صدقت", "في شي غلط",
+      "متأكد إنه أنت؟", "أنا الوحيدة اللي ما فهمت؟", "شكله مركب"],
+    share: ["وين هذا المكان؟", "أرسلي الموقع", "شو اسم الأغنية؟", "شاركينا الوصفة", "حط الرابط!", "بأي كاميرا تصور؟",
+      "المرة الجاية خذني معك", "شارك الفلتر", "من وين الفستان؟", "احكيلي كل شي بالخاص", "نزل أكثر من هيك",
+      "شو اسم المكان؟", "بأي برنامج تعدل؟", "ابعتلي التفاصيل"],
+  },
+};
+// Емодзі за настроєм коментаря
+const CMT_EMOJI = {
+  joy: ['😍', '🥰', '❤️', '🔥', '✨', '💖', '😊', '🙌', '👏', '💯', '🥹', '💛', '😘', '🤍', '🌸'],
+  wow: ['😱', '🤯', '😳', '😮', '🔥', '‼️', '😲', '🙀', '💥'],
+  doubt: ['🤔', '🧐', '😅', '🤨', '👀', '😬'],
+  share: ['🙏', '👀', '📍', '🎶', '😍', '🥺', '💌'],
+};
+const CMT_CATS = [['joy', 0.6], ['wow', 0.17], ['doubt', 0.1], ['share', 0.13]];
+const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const isLetter = (g) => /\p{L}/u.test(g);
+/** Опечатка: переставлені сусідні літери, пропущена або подвоєна літера (по графемах — безпечно для деванагарі) */
+function addTypo(text) {
+  const g = graphemes(text);
+  const idx = g.map((ch, i) => (i > 0 && isLetter(ch) && isLetter(g[i - 1]) ? i : -1)).filter((i) => i > 0);
+  if (idx.length < 2) return text;
+  const i = pick(idx), r = Math.random();
+  if (r < 0.45) [g[i - 1], g[i]] = [g[i], g[i - 1]];
+  else if (r < 0.75) g.splice(i, 1);
+  else g.splice(i, 0, g[i]);
+  return g.join('');
+}
+/** Повтор символів: розтягнута літера («wowww», «رووووعة») або знаки «!!!!», «???», «))))» */
+function addRepeat(text, code) {
+  const g = graphemes(text);
+  // арабською зазвичай тягнуть голосні (ا و ي): «رووووعة», «حلوووو»; деванагарі не тягнемо
+  const letters = g.map((ch, i) => (isLetter(ch) && !DEVA_RE.test(ch) && (code !== 'ar' || /[اوي]/.test(ch)) ? i : -1)).filter((i) => i >= 0);
+  if (letters.length && Math.random() < 0.6) {
+    // частіше тягнуть останню літеру слова
+    const ends = letters.filter((i) => !isLetter(g[i + 1] || ' '));
+    const inner = letters.filter((i) => i > 0 && isLetter(g[i - 1]));   // не перша літера слова
+    const i = Math.random() < 0.7 && ends.length ? pick(ends) : inner.length ? pick(inner) : pick(letters);
+    g.splice(i, 1, g[i].repeat(randInt(3, 6)));
+    return g.join('');
+  }
+  const t = text.replace(/[!?¡¿؟।.)]+$/u, '');
+  const tail = /[?؟]$/.test(text) ? (code === 'ar' ? '؟' : '?') : (code === 'uk' || code === 'ru') && Math.random() < 0.5 ? ')' : '!';
+  return t + tail.repeat(randInt(3, 7));
+}
+/** Хаотичні емодзі: кілька штук у випадкових місцях, іноді пачкою */
+function addEmojiChaos(text, cat) {
+  const words = text.split(' ');
+  const pool = [...CMT_EMOJI[cat], ...CMT_EMOJI.joy, '😂', '🤣', '💀', '🙈', '🫶'];
+  for (let n = randInt(2, 4); n > 0; n--) {
+    const e = pick(pool).repeat(Math.random() < 0.3 ? randInt(2, 4) : 1);
+    const at = randInt(0, words.length - 1);
+    const r = Math.random();
+    // окремим «словом» або приклеєним до слова без пробілу
+    if (r < 0.5) words.splice(randInt(0, words.length), 0, e);
+    else if (r < 0.75) words[at] = e + words[at];
+    else words[at] += e;
+  }
+  return words.join(' ').replace(/\s+/g, ' ').trim();
+}
+/**
+ * Випадковий коментар мовою відео. Переважно радість; також бурхливе здивування, сумнів,
+ * прохання поділитися. Приблизно третина — «з недоліками»: опечатки, повтори символів, хаотичні емодзі.
+ */
 function randomComment(code = 'en') {
-  const L = loc(code);
-  const emojis = ['🔥', '😍', '❤️', '😮', '😂', '👏', '🙌', '🤍', '✨', '🥹', '💯', '🎉'];
-  const em = (k) => Array.from({ length: k }, () => pick(emojis)).join('');
-  if (Math.random() < 0.22) return em(1 + Math.floor(Math.random() * 3));
-  let text = pick(L.comments);
-  // Розтягнута остання літера: «wowww», «кругоо» (лише для латиниці й кирилиці)
-  if (Math.random() < 0.18 && /[a-zа-яіїєґё]$/i.test(text)) text += text.slice(-1).repeat(1 + Math.floor(Math.random() * 3));
-  if (Math.random() < 0.45 && !/\p{Extended_Pictographic}/u.test(text)) text += ' ' + em(1 + Math.floor(Math.random() * 2));
+  const bank = COMMENT_BANK[Object.hasOwn(COMMENT_BANK, code) ? code : 'en'];
+  // зрідка — лише емодзі
+  if (Math.random() < 0.07) return pick(CMT_EMOJI.joy).repeat(randInt(1, 4));
+  let r = Math.random(), cat = 'joy';
+  for (const [k, w] of CMT_CATS) { if (r < w) { cat = k; break; } r -= w; }
+  let text = pick(bank[cat]);
+  if (Math.random() < 0.35) {
+    // недоліки: один або два з трьох
+    const flaws = [addTypo, (x) => addRepeat(x, code), (x) => addEmojiChaos(x, cat)].sort(() => Math.random() - 0.5).slice(0, Math.random() < 0.3 ? 2 : 1);
+    for (const f of flaws) text = f(text);
+  } else if (Math.random() < 0.55) {
+    const e = pick(CMT_EMOJI[cat]);
+    text += ' ' + (Math.random() < 0.3 ? e.repeat(randInt(2, 3)) : e + (Math.random() < 0.3 ? pick(CMT_EMOJI[cat]) : ''));
+  }
   return text;
 }
 // '' = «Оригінальне аудіо» мовою кадру (рядок береться з LOCALES)
@@ -3303,39 +3464,45 @@ const TIME_UNITS = ['s', 'm', 'h', 'd', 'w', 'y'];
 function clipSub(c) {
   return `${t(c.type === 'video' ? 'clip.video' : 'clip.photo')} · ${clipLen(c).toFixed(2)} ${t('unit.s')}${c.type === 'video' && c.muted ? ' · ' + t('clip.muted') : ''}`;
 }
-function unitLabel(value, u) { return `${t('unit.' + u + 'Long')} — ${formatAgo(value, u, state.locale)}`; }
+/** Завжди видима панель слайда сторіз: час публікації й коментарі */
+function storyPanelHtml(c) {
+  const ss = c.story;
+  const units = TIME_UNITS.map((u) => `<option value="${u}" ${ss.timeUnit === u ? 'selected' : ''}>${escapeHtml(t('unit.' + u + 'Long'))}</option>`).join('');
+  const cmts = ss.comments.map((x) => `
+      <div class="comment-row" data-cmt="${escapeHtml(x.id)}">
+        <input type="text" dir="auto" value="${escapeHtml(x.text)}" data-cmt-text placeholder="${escapeHtml(t('slide.cmtPh'))}" aria-label="${escapeHtml(t('slide.comment'))}">
+        <button class="icon-btn" type="button" data-act="cmt-rand" title="${escapeHtml(t('slide.cmtRand'))}" aria-label="${escapeHtml(t('slide.cmtRand'))}">🎲</button>
+        <button class="icon-btn" type="button" data-act="cmt-del" title="${escapeHtml(t('slide.cmtDel'))}" aria-label="${escapeHtml(t('slide.cmtDel'))}">✕</button>
+      </div>`).join('');
+  return `
+    <div class="story-panel">
+      <div class="posted-row">
+        <span class="lbl">${escapeHtml(t('slide.posted'))}</span>
+        <input type="number" class="num" min="0" max="999" step="1" value="${ss.timeValue}" data-story="timeValue" aria-label="${escapeHtml(t('slide.postedValue'))}">
+        <select data-story="timeUnit" aria-label="${escapeHtml(t('slide.postedUnit'))}">${units}</select>
+        <span class="ago-preview" data-ago title="${escapeHtml(t('slide.agoPreview'))}">${escapeHtml(formatAgo(ss.timeValue, ss.timeUnit, state.locale))}</span>
+      </div>
+      <div class="cmt-head">
+        <label class="toggle"><input type="checkbox" data-story="reactions" ${ss.reactions ? 'checked' : ''}><span class="track"></span><span>${escapeHtml(t('slide.showComments'))}</span></label>
+        <button class="icon-btn" type="button" data-act="cmt-rand-all" title="${escapeHtml(t('slide.cmtRandAll'))}" aria-label="${escapeHtml(t('slide.cmtRandAll'))}">🎲</button>
+      </div>
+      <div class="comments-list ${ss.reactions ? '' : 'is-disabled'}" data-cmt-list>
+        ${cmts || `<span class="hint">${escapeHtml(t('slide.cmtEmpty'))}</span>`}
+      </div>
+      <button class="btn small cmt-add" type="button" data-act="cmt-add">${escapeHtml(t('slide.cmtAdd'))}</button>
+    </div>`;
+}
+/** Додаткові налаштування слайда (у розгорнутому ⚙): рядок треку в шапці */
 function storyBodyHtml(c) {
   const ss = c.story;
   const L = loc(state.locale);
-  const units = TIME_UNITS.map((u) => `<option value="${u}" ${ss.timeUnit === u ? 'selected' : ''}>${escapeHtml(unitLabel(ss.timeValue, u))}</option>`).join('');
-  const cmts = ss.comments.map((x) => `
-    <div class="comment-row" data-cmt="${escapeHtml(x.id)}">
-      <input type="text" dir="auto" value="${escapeHtml(x.text)}" data-cmt-text aria-label="${escapeHtml(t('slide.comment'))}">
-      <button class="icon-btn" type="button" data-act="cmt-rand" title="${escapeHtml(t('slide.cmtRand'))}" aria-label="${escapeHtml(t('slide.cmtRand'))}">🎲</button>
-      <button class="icon-btn" type="button" data-act="cmt-del" title="${escapeHtml(t('slide.cmtDel'))}" aria-label="${escapeHtml(t('slide.cmtDel'))}">✕</button>
-    </div>`).join('');
   return `
-    <div class="slide-group">
-      <div class="row"><label>${escapeHtml(t('slide.posted'))}</label><div class="ctl">
-        <input type="number" class="num" min="0" max="999" step="1" value="${ss.timeValue}" data-story="timeValue">
-        <select data-story="timeUnit">${units}</select></div></div>
-    </div>
     <div class="slide-group">
       <label class="toggle"><input type="checkbox" data-story="showAudio" ${ss.showAudio ? 'checked' : ''}><span class="track"></span><span>${escapeHtml(t('slide.audio'))}</span></label>
       <div class="url-row ${ss.showAudio ? '' : 'is-disabled'}" data-audio-row>
         <input type="text" dir="auto" value="${escapeHtml(ss.audioText)}" data-story="audioText" placeholder="${escapeHtml(L.s.originalAudio)}">
         <button class="icon-btn" type="button" data-act="audio-rand" title="${escapeHtml(t('slide.audioRand'))}" aria-label="${escapeHtml(t('slide.audioRand'))}" style="width:32px;height:32px">🎲</button>
       </div>
-    </div>
-    <div class="slide-group">
-      <div class="head">
-        <label class="toggle"><input type="checkbox" data-story="reactions" ${ss.reactions ? 'checked' : ''}><span class="track"></span><span>${escapeHtml(t('slide.comments'))}</span></label>
-        <span style="display:flex;gap:4px">
-          <button class="btn small" type="button" data-act="cmt-rand-all" title="${escapeHtml(t('slide.cmtRandAll'))}">🎲</button>
-          <button class="btn small" type="button" data-act="cmt-add">${escapeHtml(t('slide.cmtAdd'))}</button>
-        </span>
-      </div>
-      <div class="comments-list ${ss.reactions ? '' : 'is-disabled'}" data-cmt-list>${cmts}</div>
     </div>`;
 }
 function renderClipList() {
@@ -3384,6 +3551,7 @@ function renderClipList() {
           <button class="icon-btn" type="button" data-act="del" title="${escapeHtml(t('clip.del'))}" aria-label="${escapeHtml(t('clip.del'))}">✕</button>
         </div>
       </div>
+      ${stories && c.story ? storyPanelHtml(c) : ''}
       <div class="clip-body">
         ${durField}
         <div class="row"><label>${escapeHtml(t('clip.fit'))}</label><div class="ctl"><select data-clip="fit">
@@ -3422,9 +3590,11 @@ function onClipInput(e) {
     } else if (key === 'timeValue') {
       const v = parseInt(el.value, 10);
       if (Number.isFinite(v)) c.story.timeValue = clamp(v, 0, 999);
-      const sel = $('[data-story="timeUnit"]', li);
-      if (sel) for (const o of sel.options) o.textContent = unitLabel(c.story.timeValue, o.value);
     } else c.story[key] = el.value;
+    if (key === 'timeValue' || key === 'timeUnit') {
+      const pv2 = $('[data-ago]', li);
+      if (pv2) pv2.textContent = formatAgo(c.story.timeValue, c.story.timeUnit, state.locale);
+    }
     if (key === 'audioText') ensureFonts().then(requestRender);
     requestRender();
     return;
@@ -3476,13 +3646,24 @@ function onClipClick(e) {
   if (act.startsWith('cmt-') || act === 'audio-rand') {
     const ss = c.story;
     if (!ss) return;
-    if (act === 'cmt-add') ss.comments.push({ id: uid(), text: randomComment(state.locale) });
-    if (act === 'cmt-rand-all') ss.comments.forEach((x) => { x.text = randomComment(state.locale); });
     const row = btn.closest('[data-cmt]');
-    if (act === 'cmt-rand' && row) { const cm = ss.comments.find((x) => x.id === row.dataset.cmt); if (cm) cm.text = randomComment(state.locale); }
-    if (act === 'cmt-del' && row) ss.comments = ss.comments.filter((x) => x.id !== row.dataset.cmt);
-    if (act === 'audio-rand') { ss.audioText = pick(RANDOM_TRACKS.filter((x) => x !== (ss.audioText || '').trim())); ss.showAudio = true; }
-    renderClipList();
+    const fresh = (old) => { let x; do x = randomComment(state.locale); while (x === old); return x; };
+    if (act === 'cmt-rand' || act === 'cmt-rand-all') {
+      // Лише оновлюємо значення полів — без перебудови списку (фокус і прокрутка лишаються)
+      const targets = act === 'cmt-rand' ? ss.comments.filter((x) => row && x.id === row.dataset.cmt) : ss.comments;
+      for (const cm of targets) {
+        cm.text = fresh(cm.text);
+        const inp = $(`[data-cmt="${CSS.escape(cm.id)}"] [data-cmt-text]`, li);
+        if (inp) inp.value = cm.text;
+      }
+    } else {
+      let focusId = null;
+      if (act === 'cmt-add') { focusId = uid(); ss.comments.push({ id: focusId, text: randomComment(state.locale) }); ss.reactions = true; }
+      if (act === 'cmt-del' && row) ss.comments = ss.comments.filter((x) => x.id !== row.dataset.cmt);
+      if (act === 'audio-rand') { ss.audioText = pick(RANDOM_TRACKS.filter((x) => x !== (ss.audioText || '').trim())); ss.showAudio = true; }
+      renderClipList();
+      if (focusId) $(`#clipList [data-cmt="${CSS.escape(focusId)}"] [data-cmt-text]`)?.focus();
+    }
     ensureFonts().then(requestRender);
     requestRender();
     return;
