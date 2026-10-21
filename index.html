@@ -497,8 +497,13 @@ input[type=color] { width: 44px; height: 30px; padding: 2px; border: 1px solid v
         </div>
         <div class="row"><label data-i18n="cap.placeholder">Placeholder</label><div class="ctl"><input type="text" dir="auto" data-bind="caption.placeholder" data-i18n-ph="cap.placeholderPh"></div></div>
         <label class="toggle"><input type="checkbox" data-bind="track.show"><span class="track"></span><span data-i18n="cap.showTrack">Show track</span></label>
-        <div class="row" data-show-if="track.show"><label data-i18n="cap.artist">Artist</label><div class="ctl"><input type="text" dir="auto" data-bind="track.artist"></div></div>
-        <div class="row" data-show-if="track.show"><label data-i18n="cap.title">Title</label><div class="ctl"><input type="text" dir="auto" data-bind="track.title"></div></div>
+        <div class="row" data-show-if="track.show"><label data-i18n="line.kind">Show</label>
+          <div class="ctl"><select data-bind="track.kind">
+            <option value="audio" data-i18n="line.audio">Audio track</option>
+            <option value="glasses" data-i18n="line.glasses">Ray-Ban Meta</option>
+          </select></div></div>
+        <div class="row" data-show-if="track.show&amp;track.kind=audio"><label data-i18n="cap.artist">Artist</label><div class="ctl"><input type="text" dir="auto" data-bind="track.artist"></div></div>
+        <div class="row" data-show-if="track.show&amp;track.kind=audio"><label data-i18n="cap.title">Title</label><div class="ctl"><input type="text" dir="auto" data-bind="track.title"></div></div>
       </div>
     </details>
 
@@ -840,7 +845,7 @@ const UI_STRINGS = {
     'cap.caption': 'Caption', 'cap.captionPh': 'Empty: the placeholder is shown',
     'cap.hint': 'The frame shows one line; longer text is cut with « ...». Emoji are supported.',
     'cap.placeholder': 'Placeholder', 'cap.placeholderPh': 'Empty: «See more» in the video language',
-    'cap.showTrack': 'Show track', 'cap.artist': 'Artist', 'cap.title': 'Title',
+    'cap.showTrack': 'Show track or glasses line', 'cap.artist': 'Artist', 'cap.title': 'Title',
     'stats.likes': 'Likes', 'stats.comments': 'Comments', 'stats.reposts': 'Reposts', 'stats.saves': 'Saves',
     'stats.hide': 'Hide the like count', 'stats.random': '🎲 Random stats', 'stats.lock': 'Keep this value when randomizing',
     'bottom.interested': '“Not interested / Interested” buttons',
@@ -867,8 +872,9 @@ const UI_STRINGS = {
     'clip.dup': 'Duplicate', 'clip.copyTo': 'Copy to {mode}', 'clip.copied': 'Copied to {mode}', 'clip.settings': 'Clip settings', 'clip.del': 'Delete',
     'clip.start': 'Start, s', 'clip.end': 'End, s', 'clip.volume': 'Volume', 'clip.mute': 'Mute', 'clip.duration': 'Length, s',
     'clip.fit': 'Fit', 'clip.cover': 'Cover: fill the frame', 'clip.contain': 'Contain: blurred backdrop',
-    'slide.posted': 'Posted', 'slide.durHint': 'empty = default', 'slide.audio': 'Audio line in the header', 'slide.audioRand': 'Random track',
+    'slide.posted': 'Posted', 'slide.durHint': 'empty = default', 'slide.audio': 'Track or glasses line in the header', 'slide.audioRand': 'Random track',
     'slide.comments': 'Comments', 'slide.comment': 'Comment', 'slide.cmtAdd': '+ Add comment', 'slide.cmtRandAll': 'Randomize all comments',
+    'line.kind': 'Show', 'line.audio': 'Audio track', 'line.glasses': 'Ray-Ban Meta',
     'slide.cmtRand': 'Random comment', 'slide.cmtDel': 'Remove comment',
     'slide.showComments': 'Show comments', 'slide.cmtPh': 'Comment text', 'slide.cmtEmpty': 'No comments yet.',
     'slide.postedValue': 'How long ago it was posted', 'slide.postedUnit': 'Time unit', 'slide.agoPreview': 'How it looks in the video',
@@ -950,7 +956,7 @@ const UI_STRINGS = {
     'cap.caption': 'Підпис', 'cap.captionPh': 'Порожньо — показується заглушка',
     'cap.hint': 'У кадрі видно один рядок; довший текст обрізається « ...». Емодзі підтримуються.',
     'cap.placeholder': 'Заглушка', 'cap.placeholderPh': 'Порожньо — «See more» мовою відео',
-    'cap.showTrack': 'Показувати трек', 'cap.artist': 'Виконавець', 'cap.title': 'Назва',
+    'cap.showTrack': 'Показувати трек або окуляри', 'cap.artist': 'Виконавець', 'cap.title': 'Назва',
     'stats.likes': 'Лайки', 'stats.comments': 'Коментарі', 'stats.reposts': 'Репости', 'stats.saves': 'Збереження',
     'stats.hide': 'Приховати кількість лайків', 'stats.random': '🎲 Випадкова статистика', 'stats.lock': 'Не змінювати при рандомізації',
     'bottom.interested': 'Кнопки «Не цікаво / Цікаво»',
@@ -977,8 +983,9 @@ const UI_STRINGS = {
     'clip.dup': 'Дублювати', 'clip.copyTo': 'Копіювати в {mode}', 'clip.copied': 'Скопійовано в {mode}', 'clip.settings': 'Налаштування кліпу', 'clip.del': 'Видалити',
     'clip.start': 'Початок, с', 'clip.end': 'Кінець, с', 'clip.volume': 'Гучність', 'clip.mute': 'Без звуку', 'clip.duration': 'Тривалість, с',
     'clip.fit': 'Вписування', 'clip.cover': 'Cover — заповнити кадр', 'clip.contain': 'Contain — розмитий фон',
-    'slide.posted': 'Опубліковано', 'slide.durHint': 'порожньо — за замовчуванням', 'slide.audio': 'Рядок треку в шапці', 'slide.audioRand': 'Випадковий трек',
+    'slide.posted': 'Опубліковано', 'slide.durHint': 'порожньо — за замовчуванням', 'slide.audio': 'Трек або окуляри в шапці', 'slide.audioRand': 'Випадковий трек',
     'slide.comments': 'Коментарі', 'slide.comment': 'Коментар', 'slide.cmtAdd': '+ Додати коментар', 'slide.cmtRandAll': 'Перегенерувати всі коментарі',
+    'line.kind': 'Що показувати', 'line.audio': 'Аудіотрек', 'line.glasses': 'Ray-Ban Meta',
     'slide.cmtRand': 'Випадковий коментар', 'slide.cmtDel': 'Видалити коментар',
     'slide.showComments': 'Показувати коментарі', 'slide.cmtPh': 'Текст коментаря', 'slide.cmtEmpty': 'Коментарів поки немає.',
     'slide.postedValue': 'Скільки часу тому опубліковано', 'slide.postedUnit': 'Одиниця часу', 'slide.agoPreview': 'Як це виглядає у відео',
@@ -1509,7 +1516,8 @@ const DEFAULT_STATE = {
   interested: { show: true },
   author: { nickname: 'kiwi.cloud', verified: false, follow: true },
   floating: { show: true },
-  track: { show: true, artist: 'Portiz Music', title: 'Oops!' },
+  // kind: 'audio' — нота й трек; 'glasses' — окуляри й «Made with Ray-Ban | Meta»
+  track: { show: true, kind: 'audio', artist: 'Portiz Music', title: 'Oops!' },
   caption: { text: 'Just vibing 😋\nmore below', placeholder: '' },
   stats: {
     likes: 48213, comments: 1740, reposts: 9233, saves: 19200, hideLikes: false,
@@ -1545,6 +1553,7 @@ function sanitizeState(s) {
   if (!['square', 'clapper'].includes(s.nav.reelsIcon)) s.nav.reelsIcon = 'square';
   if (!['inter', 'system'].includes(s.look.font)) s.look.font = 'inter';
   if (!['cut', 'crossfade'].includes(s.seq.transition)) s.seq.transition = 'cut';
+  if (!['audio', 'glasses'].includes(s.track.kind)) s.track.kind = 'audio';
   s.seq.xfade = clamp(s.seq.xfade, 0.1, 2);
   s.stories.photoDur = clamp(s.stories.photoDur, 1, 60);
   s.stories.dummyBefore = clamp(Math.round(s.stories.dummyBefore), 0, 20);
@@ -1932,7 +1941,34 @@ async function loadAvatarImage(slot) {
     delete avatarImages[slot];
   }
 }
-async function loadAllAvatars() { await Promise.all(AVATAR_SLOTS.map(loadAvatarImage)); }
+async function loadAllAvatars() { await Promise.all([...AVATAR_SLOTS.map(loadAvatarImage), glassesReady]); }
+
+// ----- Рядок «Made with Ray-Ban | Meta» з іконкою окулярів -----
+// Іконка — reference/RayBan-Meta_Glasses-icon.png, обрізана до видимої області (134×52) і вбудована,
+// щоб експорт не залежав від мережі.
+const GLASSES = { img: null, ratio: 52 / 134, w: 15.5, text: 'Made with Ray-Ban | Meta' };
+const glassesReady = (() => {
+  const img = new Image();
+  img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIYAAAA0CAYAAABPe0DvAAANE0lEQVR42t2da6xdRRXHf3uf21u4baFYHoVCS5WnVjApoCJSURR5aAUTTI2oIMRoVCJEP4iRyBc1YiImhigaiDFCgCpFHpGqlFoqoPKwtJRWxFYpt4D09kF7295zlh9mDWc6d2a/7nlsmWTnnHPv2Xtm/vNfa9Zas2ZOIiL0qCR65RXxXt/opSguFpOe4JJMkBip0yn7oFaX2urW1fo/Io5tt3RxYBOPYBOuqygx3M4VHfhBYAg4AJgKTNNriv59CjBJn7cL2AG8pq9bgW3OqxRoWx3IUrQtkxSXA/V1umJkcRnU+y0uO/Xa7nzepq+tklqpEGFCxCjSuf2Bw4AjgKP0dRZwODATmKGdnaLXfiXUpS2jCsSrwDCwEfgnsB5Yq++3RAanm5orBHgr0o6jgGOA44FjgbmK1SGOwAyWrHNMsdmh5NiiGG0CXnCuf+vfXskhchArlxhJgAgDwJHAccA84K3ACcAcJcakEh0qot6SEnPuq8A/gCeAR4G/Ac8CuwOd76QKj4E5UzE6FThF388BJhd4ZivHriqDi1u2KknWA6v0WgNsUKHz65CYxhgCzgBO184dD8zOYXXLAz6vE0kBwzNGKHtvI3L/v5QkDwDLVKt0giQhMuwPvBM4GzgLeLtOlaH2t5z2V8FGIoIbwydx2hwqw8A64HHF62HVMPtoDFvhKcAdwNE5gx+qNKE3RTKsdJ8se7TTvwHuUamJSaIE+hKaHoaABcBFwDk6VYRI4NtldcEoRphdwPXAt0LEuB/4MLDXubmTnauiyhNPErKe6xvHLlH2Ao8BdwNLVZ3uLtiGWaoZLgA+pJ99IoS0QNJhPJIeCNWbgefdqaShqmWup/I60YgijM16TivH508yiGI1na9NNgDPAKsViFdUwzTUUzhSp9ET1WicEtCeaQ5xQ4R1sZ0IDp0SWNuepvb9fOA+IBnQL+ynnU8mUJF4ICRe7AFPgl9TFbbHYe2gGmv76/skw55oevN/iDhJIPbRUKNwjmrIIsUlQxqZemIYJBn9sC7pqGqwMaeN1t0fyri/FZgOkwoa2V5WAF4nxoDjYUjJh7tSYJlnO7Fd1faTwNPAc8BmYERdrVEPjElKjCkquQertT9XvaET9P1BHlBN57NECO778q3IdyXiDSQZguMTwsVgTF3t9aqV1+nnzeo1bHcEZMwh+6AKyHTFYbZqsJPV0J3j1OETJKkwRSUuB1xiDFRgnG8tN3TAlwB3ASvVAu5kmaEAvUcl/r0eQGkEHJ8kjQ4Zer5QAPxHbbbfq+W/QbVkmbJTBejFwP8mA29TA/hi4B0F+l+EHIOvfxYRRORQEdkhprSkWGkFvn+DiMzSZ7pXIiKpvlLisvdl3TtPRG5y2tEs2Y+qxe2/ff+UiHxaRIZy+pOUxCIPv4tEZL22YaxCX+w9l+vz0jTDqCvCspbD7o8CV2pAxTeupGLI2t7n35s6z38auAI4U9V16qjWbobI/Xn9OmA+8AvFIw0YmBKI+5TBwZ/m7PN/rYG136nWalb0fNJQ4KZVsqFupZ8Afus8T+huSNptrwVohU4razxydDNeYOu4ArhWbYSqmFat347jCLBQ3XJLjqTCM/chxphj+EgJbZECP9MAUqNH6xMxgFI16C5UiYXuLlNbI/MGxaCRERjrdrEE3Q18Ro36MhpTnKAggKTOH0ZLGJ/WdRsDvu+5j/0qlhzrgBv1fbMLWsMl4jBwjWN89rNYg3OtBvLSgiR1HYjXLAdSx0bY5c1jUoChT0ZCzf0kB8DNjkRLgekwZMtIjrZMgF8qmElN+m/bsaRE9NV1V0dcjWHZssKRMslRRRbUhwNBpjqUtZgFtayFp8R7n7JvykGRe5fWrN9WMJ7wXNciUc9RNeRfJ4a98SvAbRrkyAPHMmxdh+L4nS5NDXVLZI0g8WIQT6n6fVDjMFnGqzjG3YY+2hVZ5UUNnknO+FlSbMIsDA4TkPQRYBFwqeNuxchhAftvRbeoF+p0e0bb7UBuAT6iAaKFwPs1qrjYm6ND/dvjzMl1Kzud/sfIbUlxF2Zl/f6g3+qUW4DzPMs+phHGakgMcrSYG3u4XD0q9/sb1f1e40hVEolf1LW0nLEJ9d1qvZ+qF/eij1eIGA3gIeAqR2okUsFgDacS27Ypgba5HsUKDQyl3n3Wzvou4fUTKyh2kauOZYBwcpVrIjwGfD4Uw4gRw7pdP1EbopExlRxQUxsDzMITAWm35ecRbWenj7t1nvb7nzgS96aa9n8/zAJclra8LstxiHkT9u/3ZhhwOMDUTbXaZGUJaIxU7YNlOW3fCjzC+FxVN89jdk2JMQ2TaBwauxSTL7s8y3DOczP/HDFgbGUza6pKZ6rGSDKCQBsK2CfLIu6t/TyvpnbVwZgVWH/sLKFXMz4ZuBAxLItWRzwTW9lRNdMYtl0n0t6zEsrBeNTRHll2yp9oL9H7yc6CWTSrY/+PYHyCsNvOx/MUQ57GeB54KYMYs2sKzGnE0wITNa6LlL9n9D9RN3dyDafSuYT3BiVOAIwqGsOWXbRT8GPEmFozNw1MOn8SsS/26hSZF5hKVN0+HrEzRCXzpBpOpScGxsrNU12TJ9BpAdKsigBj57JjamaAHa4aA88VtWr1acbvN8nSPn9gfMqcu2h2XkEh66VgnEQ8i22E9vqWVNUYAH8lnPNo5+/TakIM25dz1F1reu215HigYN8tyA8wfkHOBf3CAtqnl+UgTNpfzPBcS3uxrNJUEjJUxJNAAd5XEzvDDsyigIZz1ejdJdu7CmdxySGaxeNk2jmX/RQOW/d8JUfLG0vx7It0osRYg1lkSQLAJJidWUM1McCOdYja8DQFmCz1v5Qghh382yMGqJ1OLquRfXE++2aXxQxvmYjxmWCWY1cSTtdrqgF2bp8lxtZ7FSYU3IpMe7ex7067olroVg2KpZ42sp8vwexg76dwiAb2Pk4457ahzsTyThEDzEJTaDOPLV/us5SIGsGX0V4LcVWoXSa/uYI9kKixej/7Lqq508l0TCZXv4xQOxYXaGyp6bXD2hcrCW9HKE0MC+B9mPMY/N3idpFtAWafRz8kxvbhR7QPHAlpi3t0Kqmq1X7gTS9+iPyLam+0+qg5v052ctHthclbcE8DInKr7j3YG9mTsNL7fi+uVF+vdtrS8q6mvs6fQPvsPSsiezfsXpZVGXtKuo3B5zwMxMNhREQOLvrcMqCc7oDgg2+Bula/2+ghIBcHAPFJe/sESWvvOzNCQLeu+5z+pz3C4DgR2aZj04xgcFMZDMoC82BEYlxyXBpoeDfAQOvyB8jVFE0R2S0ix3SgXovBYg+DkIDcKyLTvF1k3cJhpog8E9iF51/zukmMBRGtIc5giIh8I3D/RKTVv3eGiNyYs13QTnnf7PAUN1tEtnv9DUnoGhE5q4M4hPpwqoisy9iaaTG4sywGVRp1R0Ri/PcrReT8HMbHrtg9R4vINSKyySOoRNT6sg4MRgiDRQ7wrQBBXY26WEQ+ICIDBfbn+les3bNE5HsisieDFFZj7hKRuWWJUeWcz5ka9Jru+fKu2+Tu/LYZ2H/EHJ72MuF8xJC3cQjwFuDdmNNszqCdTucffeAGnRqYM6VOxexO67RrKJijia7WvjQCAUD/pJ1ndd3lIV213YTJSC9SpmFO8jlFXdJzaWfP+TvcxcFnAPgq8ENK5qqWJYZ9+EJMdnGT8ae7xIBBXd5hXcp+CZMlNapBpwEd9GlKiEOVhAcEgmppRiSyoc8+W8PZ3Ujetc+8BbMlMNSmJNBe1318SWMKmzHZ9jsxWwxTDVRN1UXKGQ4eaQYO7uuY4rkE+FgVDKpoDFvJlcrEluffhyRHiJ+uUyR41Qr43z4gVkI2qlR1ixR++bHGMLKkN3TSUJXiniIUIgQOKR4BPqjCWJ75FY+MtoEtSw4CKjXJCL0WPe8zFuELnWADZmfYZwNrO90uX9KpZbITGQ1NsVISh1gwKolMoZYwy3TVd6RyjzpgkJ0jIs95VnkzYBB24qAS93AU18AbEZGrehxY8q+THXfebWOrCwe5tLwwgfvs6zvhHk/0kHkrlQcCXwO+QDtz3FV9ZY87LHqe5yjmoJLvYPaq9jMXxE53l2hoel5grSKkAcoe+xg7b3Up8G3a+4knZkR14GcpXJV9uKryTxLPoG5mdNoHqpGRI3En8CvMsdH+4PRrhdf2ZxLmhKFPYdIMD4ysQ0kOCfJO+t2KOUXnJsx5X3RqCu0EMUJSk6hrtQB4FyajaBbhI5XzyjZ1PVdjsruXY7LKqAkhsnAAs7/ldMxRUPN1FfgQ2ofhlSkv0z4//SHFYjhCztoQI2ugEgXoSCXIYZgsoyE12OxpPLvVbduiHX4BcwLecKSenv2wS0UcQu2bislhOULdcftLBPZsU2vI76b96wubFYuNAYMy6xcQakUMPPXXqd8R6fTz+pEa0Krp83pKjDJuaJbh9Ub9CayysYyeYvE/7UQf90giugEAAAAASUVORK5CYII=';
+  return img.decode().then(() => { GLASSES.img = img; }).catch(() => {});
+})();
+const NOTE_LEFT = 5.8;   // від центру ноти до її лівого краю, pt
+/**
+ * Малює окуляри й підпис замість ноти й назви треку. left — лівий край іконки в LTR-координатах
+ * (у дзеркальному RTL-макеті — правий). Повертає x початку тексту.
+ */
+function drawGlassesLine(ctx, R, left, cy, gap, fam, ty, maxRight, alpha) {
+  const w = GLASSES.w, h = w * GLASSES.ratio;
+  if (GLASSES.img) {
+    ctx.save();
+    ctx.globalAlpha *= alpha;
+    ctx.drawImage(GLASSES.img, R.rtl ? BASE_W - left - w : left, cy - h / 2, w, h);
+    ctx.restore();
+  }
+  const tx = left + w + gap;
+  const txt = fitText(fontStr(fam, ...ty), GLASSES.text, maxRight - tx, '…');
+  drawText(ctx, txt, R.X(tx), cy, fam, ty, { rtl: R.rtl, color: `rgba(255,255,255,${alpha})` });
+}
 
 /** Будь-яке зображення (Blob) → зменшений JPEG data URL (не «псує» canvas). */
 async function blobToAvatarData(blob) {
@@ -2062,7 +2098,7 @@ const EMPTY_DURATION = 10;
 
 function newStoryProps(code = state.locale) {
   return {
-    timeValue: 9, timeUnit: 'h', showAudio: false, audioText: '',
+    timeValue: 9, timeUnit: 'h', showAudio: false, lineKind: 'audio', audioText: '',
     reactions: true, comments: [{ id: uid(), text: '🔥' }, { id: uid(), text: randomComment(code) }],
     stickers: [],
   };
@@ -2362,7 +2398,12 @@ function drawAuthor(ctx, R, Y, sh) {
   const nick = fitText(fontN, st.author.nickname || 'username', rowMax - A.nickX - badgeW, '…');
   let rowRight = A.nickX + visW(measure(fontN, nick)) + badgeW;
   let track = '';
-  if (trackOn) {
+  const glasses = trackOn && st.track.kind === 'glasses';
+  const glLeft = A.noteCx - NOTE_LEFT, glGap = A.trackX - A.noteCx - 5.4;   // той самий проміжок, що між нотою й текстом
+  if (glasses) {
+    const tx = glLeft + GLASSES.w + glGap;
+    rowRight = Math.max(rowRight, tx + Math.min(visW(measure(fontT, GLASSES.text)), rowMax - tx));
+  } else if (trackOn) {
     track = [st.track.artist, st.track.title].map((x) => (x || '').trim()).filter(Boolean).join(' · ') || L.s.originalAudio;
     track = fitText(fontT, track, rowMax - A.trackX, '…');
     rowRight = Math.max(rowRight, A.trackX + visW(measure(fontT, track)));
@@ -2371,7 +2412,8 @@ function drawAuthor(ctx, R, Y, sh) {
   shadowOn(ctx, R);
   const nm = drawText(ctx, nick, R.X(A.nickX), nickCy, fam, R.ty.nick, { rtl: R.rtl });
   if (st.author.verified) drawVerified(ctx, R.X(A.nickX + visW(nm) + A.badgeGap + A.badgeD / 2), nickCy, A.badgeD);
-  if (trackOn) {
+  if (glasses) drawGlassesLine(ctx, R, glLeft, trackCy, glGap, fam, R.ty.track, rowMax, 0.92);
+  else if (trackOn) {
     ctx.save();
     ctx.translate(R.X(A.noteCx), trackCy);
     ctx.fillStyle = 'rgba(255,255,255,0.72)';
@@ -2587,8 +2629,10 @@ function drawStoriesUI(ctx, R, t, media, story, snap) {
   const ss = story?.slide.story;
   const cy = g.rowCy;
   drawAvatar(ctx, 'author', R.X(S.avCx), cy, S.avD, st);
-  const audioTxt = ss && ss.showAudio ? ((ss.audioText || '').trim() || L.s.originalAudio) : '';
-  const nameCy = audioTxt ? cy - S.audioUp : cy;
+  const lineOn = !!(ss && ss.showAudio);
+  const glasses = lineOn && ss.lineKind === 'glasses';
+  const audioTxt = lineOn && !glasses ? ((ss.audioText || '').trim() || L.s.originalAudio) : '';
+  const nameCy = lineOn ? cy - S.audioUp : cy;
   const fontN = fontStr(fam, ...R.ty.sName), fontTm = fontStr(fam, ...R.ty.sTime), fontA = fontStr(fam, ...R.ty.sAudio);
   const timeTxt = formatAgo(ss ? ss.timeValue : 9, ss ? ss.timeUnit : 'h', st.locale);
   const rightLimit = sb.menu ? S.menuCx - 20 : 362;
@@ -2599,7 +2643,8 @@ function drawStoriesUI(ctx, R, t, media, story, snap) {
   let xx = S.nameX + visW(nm);
   if (st.author.verified) { drawVerified(ctx, R.X(xx + 4 + 5.4), nameCy, 10.85); xx += badge; }
   drawText(ctx, timeTxt, R.X(xx + S.nameGap), nameCy, fam, R.ty.sTime, { rtl: R.rtl, dir: L.dir, script: scriptOf(nick), color: 'rgba(255,255,255,0.72)' });
-  if (audioTxt) {
+  if (glasses) drawGlassesLine(ctx, R, S.noteCx - NOTE_LEFT * 0.92, cy + S.audioDown, S.audioX - S.noteCx - 5.4 * 0.92, fam, R.ty.sAudio, rightLimit, 0.95);
+  else if (audioTxt) {
     ctx.save();
     ctx.translate(R.X(S.noteCx), cy + S.audioDown);
     ctx.scale(0.92, 0.92);
@@ -3499,7 +3544,11 @@ function storyBodyHtml(c) {
   return `
     <div class="slide-group">
       <label class="toggle"><input type="checkbox" data-story="showAudio" ${ss.showAudio ? 'checked' : ''}><span class="track"></span><span>${escapeHtml(t('slide.audio'))}</span></label>
-      <div class="url-row ${ss.showAudio ? '' : 'is-disabled'}" data-audio-row>
+      <div class="row ${ss.showAudio ? '' : 'is-disabled'}" data-line-row><label>${escapeHtml(t('line.kind'))}</label><div class="ctl"><select data-story="lineKind">
+        <option value="audio" ${ss.lineKind !== 'glasses' ? 'selected' : ''}>${escapeHtml(t('line.audio'))}</option>
+        <option value="glasses" ${ss.lineKind === 'glasses' ? 'selected' : ''}>${escapeHtml(t('line.glasses'))}</option>
+      </select></div></div>
+      <div class="url-row ${ss.showAudio ? '' : 'is-disabled'}" data-audio-row ${ss.lineKind === 'glasses' ? 'hidden' : ''}>
         <input type="text" dir="auto" value="${escapeHtml(ss.audioText)}" data-story="audioText" placeholder="${escapeHtml(L.s.originalAudio)}">
         <button class="icon-btn" type="button" data-act="audio-rand" title="${escapeHtml(t('slide.audioRand'))}" aria-label="${escapeHtml(t('slide.audioRand'))}" style="width:32px;height:32px">🎲</button>
       </div>
@@ -3586,11 +3635,12 @@ function onClipInput(e) {
     const key = el.dataset.story;
     if (key === 'showAudio' || key === 'reactions') {
       c.story[key] = el.checked;
-      $(key === 'showAudio' ? '[data-audio-row]' : '[data-cmt-list]', li)?.classList.toggle('is-disabled', !el.checked);
+      for (const sel of key === 'showAudio' ? ['[data-audio-row]', '[data-line-row]'] : ['[data-cmt-list]']) $(sel, li)?.classList.toggle('is-disabled', !el.checked);
     } else if (key === 'timeValue') {
       const v = parseInt(el.value, 10);
       if (Number.isFinite(v)) c.story.timeValue = clamp(v, 0, 999);
     } else c.story[key] = el.value;
+    if (key === 'lineKind') { const ar = $('[data-audio-row]', li); if (ar) ar.hidden = el.value === 'glasses'; }
     if (key === 'timeValue' || key === 'timeUnit') {
       const pv2 = $('[data-ago]', li);
       if (pv2) pv2.textContent = formatAgo(c.story.timeValue, c.story.timeUnit, state.locale);
@@ -3660,7 +3710,7 @@ function onClipClick(e) {
       let focusId = null;
       if (act === 'cmt-add') { focusId = uid(); ss.comments.push({ id: focusId, text: randomComment(state.locale) }); ss.reactions = true; }
       if (act === 'cmt-del' && row) ss.comments = ss.comments.filter((x) => x.id !== row.dataset.cmt);
-      if (act === 'audio-rand') { ss.audioText = pick(RANDOM_TRACKS.filter((x) => x !== (ss.audioText || '').trim())); ss.showAudio = true; }
+      if (act === 'audio-rand') { ss.audioText = pick(RANDOM_TRACKS.filter((x) => x !== (ss.audioText || '').trim())); ss.showAudio = true; ss.lineKind = 'audio'; }
       renderClipList();
       if (focusId) $(`#clipList [data-cmt="${CSS.escape(focusId)}"] [data-cmt-text]`)?.focus();
     }
@@ -3927,10 +3977,13 @@ function refreshControls() {
   // Видимість: режим (data-mode) і умова (data-show-if)
   for (const el of $$('[data-mode], [data-show-if]')) {
     let show = !el.dataset.mode || el.dataset.mode === state.mode;
+    // умови через «&»: «track.show&track.kind=audio»
     if (show && el.dataset.showIf) {
-      const [p, val] = el.dataset.showIf.split('=');
-      const v = getPath(state, p);
-      show = val === undefined ? !!v : String(v) === val;
+      show = el.dataset.showIf.split('&').every((cond) => {
+        const [p, val] = cond.split('=');
+        const v = getPath(state, p);
+        return val === undefined ? !!v : String(v) === val;
+      });
     }
     el.hidden = !show;
   }
@@ -4330,7 +4383,7 @@ function applyReferencePreset(ref) {
       interested: { show: true },
       author: { nickname: 'nyra.mia2026', verified: false, follow: true },
       floating: { show: true },
-      track: { show: true, artist: 'Portiz Music', title: 'Oops!' },
+      track: { show: true, kind: 'audio', artist: 'Portiz Music', title: 'Oops!' },
       caption: { text: 'Jugando un rato 😋\n#fyp', placeholder: '' },
       stats: { ...state.stats, likes: 12000, comments: 5201, reposts: 64000, saves: 123000, hideLikes: true },
       nav: { variant: 'compact', slot3: 'create', reelsIcon: 'clapper', dot: false },
